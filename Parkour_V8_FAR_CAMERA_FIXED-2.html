@@ -1,0 +1,2567 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>پارکور آسمانی - نسخه ۱.۰</title>
+<style>
+  html,body{touch-action:none;margin:0;width:100%;height:100%;overflow:hidden;background:#87ceeb;font-family:Arial,sans-serif;touch-action:none}
+  #game{touch-action:none;position:fixed;inset:0}
+  #hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:5;color:#fff;font-weight:700;text-shadow:0 2px 4px #000}
+  .pill{background:#111b;backdrop-filter:blur(4px);border:1px solid #fff5;border-radius:14px;padding:9px 12px}
+  #stage{position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:5;background:#111c;color:white;padding:7px 16px;border-radius:14px}
+  #buttons{position:fixed;right:12px;top:100px;z-index:6;display:flex;flex-direction:column;gap:8px}
+  button{border:0;border-radius:14px;padding:12px 14px;font-weight:800;color:#fff;background:#6c36ff;box-shadow:0 4px 10px #0005}
+  #carpetBtn{background:#7b3cff} #killBtn{background:#d22}
+  #shop{display:none;position:fixed;inset:0;background:#0008;z-index:20;align-items:center;justify-content:center}
+  #shopCard{width:min(92vw,420px);background:#161626;color:white;border-radius:22px;padding:18px;box-shadow:0 15px 50px #0008}
+  .item{display:flex;justify-content:space-between;align-items:center;background:#25253b;margin:10px 0;padding:12px;border-radius:15px}
+  .close{background:#555}
+  /* V7.8: shop-only visual upgrade; gameplay/camera/input logic untouched */
+  .shopModern{width:min(94vw,520px)!important;max-height:88vh;overflow:auto;background:linear-gradient(160deg,#17152b,#211a3d)!important;border:1px solid #ffffff20}
+  .shopHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .shopTitle{font-size:24px;font-weight:900}
+  .shopSub{font-size:12px;color:#bbb;margin-top:4px}
+  .shopClose{width:44px;height:44px;padding:0!important;border-radius:14px!important;background:#c7354b!important;font-size:20px}
+  .shopBalance{background:#0d1020;border:1px solid #ffffff18;border-radius:14px;padding:11px 13px;margin:10px 0 14px;text-align:center}
+  .shopGrid{display:grid;grid-template-columns:1fr;gap:12px}
+  .shopProduct{display:grid;grid-template-columns:68px 1fr auto;align-items:center;gap:12px;background:linear-gradient(145deg,#292442,#24213a);border:1px solid #ffffff12;border-radius:18px;padding:12px}
+  .chestSection{margin:14px 0 12px;background:linear-gradient(160deg,#24170b,#39220f);border:1px solid #f59e0b44;border-radius:18px;padding:14px}
+  .chestTitle{font-weight:900;font-size:18px;margin-bottom:4px}.chestSub{font-size:11px;color:#fde68a;line-height:1.7;margin-bottom:10px}
+  .chestGrid{display:grid;grid-template-columns:1fr;gap:9px}.chestProduct{display:grid;grid-template-columns:58px 1fr auto;align-items:center;gap:10px;background:linear-gradient(145deg,#3b2815,#2d2116);border:1px solid #ffffff14;border-radius:16px;padding:10px}
+  .chestIcon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:31px;background:#1b130b}.chestInfo b{display:block;font-size:14px}.chestInfo span{display:block;font-size:10px;color:#cbd5e1;line-height:1.5;margin-top:3px}.chestInfo strong{display:block;margin-top:4px;color:#fbbf24;font-size:12px}.chestBuy{border:0;border-radius:11px;padding:10px 12px;background:#f59e0b;color:#211000;font-weight:900;cursor:pointer}
+  @media(max-width:420px){.chestProduct{grid-template-columns:52px 1fr}.chestIcon{width:50px;height:50px}.chestBuy{grid-column:2;width:100%}}
+  .productIcon{width:62px;height:62px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 6px 18px #0005}
+  .carpetIcon{background:linear-gradient(145deg,#7b3cff,#d05cff)}
+  .killIcon{background:linear-gradient(145deg,#9e1e32,#e63d52)}
+  .productInfo{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .productInfo b{font-size:17px}
+  .productInfo span{font-size:11px;color:#c9c6d8;line-height:1.45}
+  .productInfo strong{font-size:13px;color:#ffd75a}
+  .buyBtn{min-width:72px;padding:11px 12px!important;border-radius:13px!important;background:#19a86b!important}
+  .killBuy{background:#d83b50!important}
+  .shopNote{font-size:11px;color:#aaa;line-height:1.6;text-align:center;margin-top:14px}
+  @media(max-width:420px){.shopProduct{grid-template-columns:56px 1fr;}.productIcon{width:54px;height:54px;font-size:29px}.buyBtn{grid-column:2;width:100%}}
+  #cameraHint{position:fixed;right:12px;bottom:92px;z-index:9;background:#1119;color:#fff;padding:8px 11px;border-radius:12px;font-size:12px;pointer-events:none;opacity:.8}
+  #touch{display:none!important;position:fixed;bottom:16px;left:16px;right:16px;z-index:10;display:flex;justify-content:space-between;pointer-events:none}
+  .cluster{display:none!important;display:grid;grid-template-columns:repeat(3,55px);gap:6px;pointer-events:auto}
+  .touchbtn{width:55px;height:55px;padding:0;border-radius:18px;background:#1119;border:1px solid #fff4;font-size:22px}
+  .up{margin:0 auto}.blank{visibility:hidden}
+  #jump{width:72px;height:72px;border-radius:50%;background:#111b;pointer-events:auto;font-size:26px}
+
+  /* SKIN PORTAL */
+  #skinPortalFx{position:fixed;inset:0;pointer-events:none;z-index:12;background:radial-gradient(circle at center,rgba(70,20,150,.16),transparent 48%);display:none}
+  #skinPortal{display:none;position:fixed;inset:0;background:rgba(4,7,20,.76);z-index:60;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}
+  /* SKIN WORLD */
+  #skinWorldHud{display:none;position:fixed;inset:0;z-index:70;pointer-events:none;color:#fff}
+  #skinWorldTitle{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(18,20,42,.82);border:1px solid #ffffff28;border-radius:18px;padding:10px 18px;text-align:center;box-shadow:0 8px 25px #0007}
+  #skinWorldTitle b{display:block;font-size:21px}#skinWorldTitle span{font-size:11px;color:#cbd2ee}
+  #skinWorldBalance{position:absolute;top:16px;right:16px;background:rgba(18,20,42,.82);border:1px solid #ffffff28;border-radius:16px;padding:10px 14px;font-weight:900}
+  #skinWorldPrompt{display:none;position:absolute;left:50%;bottom:105px;transform:translateX(-50%);background:linear-gradient(180deg,#168f57,#0b6e3f);border:3px solid #67ff9a;border-radius:22px;padding:14px 24px;text-align:center;box-shadow:0 12px 40px #0009,0 0 22px #31ff78aa;font-size:16px;font-weight:900;pointer-events:auto;cursor:pointer;min-width:180px;z-index:80}
+  #skinWorldPrompt small{display:block;color:#eafff1;margin-top:4px;font-size:12px}
+  #skinWorldConfirm{display:none;position:absolute;inset:0;background:rgba(0,0,0,.58);align-items:center;justify-content:center;padding:18px;pointer-events:auto}
+  #skinWorldConfirmCard{width:min(90vw,390px);background:linear-gradient(155deg,#168f57,#0b6e3f);border:3px solid #6dff9b;border-radius:26px;padding:24px;text-align:center;box-shadow:0 20px 70px #000b,0 0 28px #27ff78aa}
+  #skinWorldConfirmCard h2{margin:0 0 9px;font-size:23px;color:#fff}#skinWorldConfirmCard p{margin:7px 0;color:#effff5;font-size:15px;line-height:1.7;font-weight:800}
+  #skinWorldConfirmButtons{display:flex;gap:9px;margin-top:14px}.skinConfirmBtn{flex:1;padding:14px;border-radius:15px;border:2px solid #ffffff55;font-weight:900;font-size:16px;color:#fff;box-shadow:0 5px 15px #0005}.skinYes{background:#a6ff19;color:#123b00;border-color:#d7ff8a}.skinNo{background:#e52d3f;color:#fff;border-color:#ff7885}
+  #skinWorldExit{position:absolute;left:16px;top:16px;pointer-events:auto;background:#c83d52;border-radius:14px;padding:10px 14px;font-weight:900;border:0;color:#fff}
+  #skinWorldHint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(10,18,35,.55);border:1px solid #ffffff20;border-radius:14px;padding:7px 12px;font-size:11px}
+  #skinCard{width:min(94vw,620px);max-height:88vh;overflow:auto;background:linear-gradient(155deg,#15152a,#21163c);color:#fff;border:1px solid #ffffff22;border-radius:24px;padding:18px;box-shadow:0 18px 70px #000b}
+  .skinHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .skinTitle{font-size:23px;font-weight:900}.skinSub{font-size:12px;color:#c7c3d8;margin-top:3px}
+  .skinClose{width:44px;height:44px;padding:0;background:#c83d52;border-radius:14px;font-size:20px}
+  #skinGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+  .skinOption{min-height:104px;display:flex;align-items:center;gap:11px;text-align:right;background:linear-gradient(145deg,#292442,#201d35);border:1px solid #ffffff14;border-radius:18px;padding:10px;color:#fff;cursor:pointer}
+  .skinAvatar{width:62px;height:62px;flex:0 0 62px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:34px;background:#111827;border:1px solid #ffffff22;box-shadow:0 6px 18px #0005}
+  .skinOption b{display:block;font-size:15px}.skinOption span{display:block;font-size:10px;color:#bbb;margin-top:4px;line-height:1.45}
+  .skinOption.selected{outline:3px solid #8c5cff;background:linear-gradient(145deg,#34265e,#241b42)}
+  .skinNote{font-size:11px;color:#aaa;text-align:center;margin-top:12px;line-height:1.5}
+  @media(max-width:520px){#skinGrid{grid-template-columns:1fr}.skinOption{min-height:82px}.skinAvatar{width:54px;height:54px;flex-basis:54px}}
+  #skinPortalPrompt{display:none;position:fixed;left:50%;top:72%;transform:translate(-50%,-50%);z-index:55;background:#111d;color:#fff;border:1px solid #ffffff35;border-radius:16px;padding:10px 15px;font-size:13px;pointer-events:none;text-align:center;box-shadow:0 8px 24px #0006}
+  #toast{position:fixed;bottom:105px;left:50%;transform:translateX(-50%);background:#111d;color:#fff;padding:10px 15px;border-radius:14px;z-index:30;display:none}
+  #worldInfo{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:8;background:rgba(10,18,35,.55);color:#fff;border:1px solid rgba(255,255,255,.18);padding:6px 10px;border-radius:12px;font-size:11px;pointer-events:none;opacity:.82}
+  .safeFx{will-change:transform}
+
+  /* Mobile controls */
+  #controls{
+    position:fixed !important;
+    left:14px !important;
+    bottom:18px !important;
+    z-index:100 !important;
+    display:flex !important;
+    gap:14px !important;
+    align-items:flex-end !important;
+    direction:ltr !important;
+    pointer-events:auto !important;
+  }
+  #joystick{
+    width:142px !important;
+    height:142px !important;
+    border-radius:50% !important;
+    background:rgba(15,23,42,.48) !important;
+    border:3px solid rgba(255,255,255,.38) !important;
+    box-shadow:0 5px 18px rgba(0,0,0,.3) !important;
+    position:relative !important;
+    touch-action:none !important;
+    pointer-events:auto !important;
+  }
+  #stick{
+    width:64px !important;
+    height:64px !important;
+    border-radius:50% !important;
+    background:rgba(255,255,255,.38) !important;
+    border:2px solid rgba(255,255,255,.65) !important;
+    position:absolute !important;
+    left:36px !important;
+    top:36px !important;
+    box-shadow:0 3px 12px rgba(0,0,0,.3) !important;
+    pointer-events:none !important;
+  }
+  #actionButtons{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:9px !important;
+    align-items:center !important;
+    pointer-events:auto !important;
+  }
+  #actionButtons button{
+    width:68px !important;
+    height:68px !important;
+    padding:0 !important;
+    border-radius:50% !important;
+    background:rgba(17,24,39,.78) !important;
+    border:2px solid rgba(255,255,255,.35) !important;
+    color:#fff !important;
+    font-size:25px !important;
+    box-shadow:0 5px 14px rgba(0,0,0,.3) !important;
+    pointer-events:auto !important;
+    touch-action:none !important;
+  }
+  #down.active{display:block !important;}
+  #down:not(.active){display:none !important;}
+  @media (max-width:600px){
+    #controls{left:10px !important;bottom:12px !important;}
+    #joystick{width:128px !important;height:128px !important;}
+    #stick{width:58px !important;height:58px !important;left:32px !important;top:32px !important;}
+    #actionButtons button{width:62px !important;height:62px !important;}
+  }
+
+
+  /* Account system v2.5 */
+  #auth{position:fixed;inset:0;z-index:2147483647;pointer-events:auto;background:linear-gradient(160deg,#10152d,#1d2750);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+  #authCard{width:min(92vw,430px);background:#15182b;color:#fff;border:1px solid #ffffff22;border-radius:24px;padding:22px;box-shadow:0 20px 70px #000b}
+  #authCard h1{margin:0 0 8px;font-size:25px;text-align:center}
+  #authCard p{color:#cbd2ee;text-align:center;font-size:13px;line-height:1.7}
+  #authCard input{width:100%;box-sizing:border-box;background:#0d1020;color:#fff;border:1px solid #ffffff2a;border-radius:13px;padding:13px;margin:6px 0;outline:none;font-size:16px}
+  #authCard .authBtns{display:flex;gap:8px;margin-top:8px}
+  #authCard .authBtns button{flex:1}
+  #registerBtn{background:#16a36a}
+  #authMsg{min-height:24px;color:#ffd45c;text-align:center;font-size:13px;margin-top:8px}
+  #adminPanel{display:none;margin-top:14px;padding-top:14px;border-top:1px solid #ffffff1c}
+  #adminPanel h3{margin:0 0 8px}
+  #transferBtn{background:#ff9f1a}
+  #logoutBtn{background:#555;margin-top:8px;width:100%}
+  #playerName{font-size:12px;opacity:.8;text-align:center}
+
+
+
+/* V5.6: world-anchored character safety overlay */
+
+  /* Roblox-inspired mobile layout: compact top toolbar, jump left, joystick right */
+  #buttons{
+    position:fixed !important; top:7px !important; left:50% !important; right:auto !important;
+    transform:translateX(-50%) !important; z-index:120 !important;
+    display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important;
+    align-items:center !important; justify-content:center !important; gap:5px !important;
+    max-width:calc(100vw - 12px) !important; overflow-x:auto !important;
+    scrollbar-width:none !important; padding:0 !important;
+  }
+  #buttons::-webkit-scrollbar{display:none}
+  #buttons button{
+    flex:0 0 auto !important; white-space:nowrap !important; font-size:11px !important;
+    padding:8px 9px !important; border-radius:11px !important; min-height:34px !important;
+    box-shadow:0 2px 7px #0005 !important;
+  }
+  #controls{
+    left:auto !important; right:14px !important; bottom:12px !important;
+    flex-direction:row-reverse !important; gap:16px !important; align-items:flex-end !important;
+  }
+  #joystick{width:126px !important;height:126px !important;background:rgba(18,25,42,.42) !important;border:2px solid rgba(255,255,255,.5) !important;}
+  #stick{width:56px !important;height:56px !important;left:33px !important;top:33px !important;background:rgba(255,255,255,.5) !important;}
+  #actionButtons{margin-right:0 !important; margin-left:0 !important;}
+  #actionButtons #jump{width:76px !important;height:76px !important;background:rgba(255,255,255,.88) !important;color:#182033 !important;border:2px solid #fff !important;font-size:28px !important;box-shadow:0 4px 12px #0005 !important;}
+  #actionButtons #down{width:54px !important;height:54px !important;}
+  #cameraHint{right:12px !important;bottom:148px !important;font-size:10px !important;max-width:180px !important;}
+  @media (orientation: landscape) and (max-height: 500px){
+    #hud{top:48px !important;left:8px !important;right:8px !important;}
+    #hud .pill{padding:5px 8px !important;font-size:12px !important;}
+    #stage{top:50px !important;padding:5px 10px !important;font-size:12px !important;}
+    #buttons{top:5px !important;gap:4px !important;max-width:calc(100vw - 10px) !important;}
+    #buttons button{font-size:10px !important;padding:6px 7px !important;min-height:30px !important;border-radius:9px !important;}
+    #controls{right:10px !important;bottom:8px !important;gap:12px !important;}
+    #joystick{width:112px !important;height:112px !important;}
+    #stick{width:50px !important;height:50px !important;left:29px !important;top:29px !important;}
+    #actionButtons{gap:5px !important;}
+    #actionButtons #jump{width:66px !important;height:66px !important;font-size:24px !important;}
+    #actionButtons #down{width:44px !important;height:44px !important;font-size:18px !important;}
+    #cameraHint{display:none !important;}
+    #worldInfo{display:none !important;}
+    #toast{bottom:82px !important;}
+  }
+  @media (max-width:600px) and (orientation: portrait){
+    #buttons{left:6px !important;right:6px !important;transform:none !important;max-width:none !important;justify-content:flex-start !important;}
+    #buttons button{font-size:10px !important;padding:7px 8px !important;}
+    #controls{right:10px !important;bottom:12px !important;}
+    #joystick{width:112px !important;height:112px !important;}
+    #stick{width:50px !important;height:50px !important;left:29px !important;top:29px !important;}
+  }
+
+</style>
+
+<script>
+/* STABILITY_LAYER: never replace the game with a full-screen error page */
+(function(){
+  window.__gameErrorCount=0;
+  window.addEventListener('error', function(e){
+    window.__gameErrorCount++;
+    var t=document.getElementById('toast');
+    if(t && window.__gameErrorCount<=2){
+      t.textContent='⚙️ خطای کوچک مدیریت شد؛ بازی ادامه پیدا می‌کند.';
+      t.style.display='block';
+      clearTimeout(window.__stableToastTimer);
+      window.__stableToastTimer=setTimeout(function(){t.style.display='none';},1800);
+    }
+    /* keep the page alive; do not show a blue error screen */
+  });
+  window.addEventListener('unhandledrejection', function(){ /* ignore isolated promise errors */ });
+})();
+</script>
+
+
+<style>
+#friendGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#0b1020,#21164a);font-family:Arial,sans-serif;color:#fff}
+#friendGateCard{width:min(90vw,390px);box-sizing:border-box;background:#17182a;border:1px solid #ffffff22;border-radius:24px;padding:24px;box-shadow:0 18px 60px #0009;text-align:center}
+#friendGateCard h2{margin:0 0 8px;font-size:25px}
+#friendGateCard p{color:#c8c8d8;font-size:14px;line-height:1.7;margin:8px 0 16px}
+#friendCode{width:100%;box-sizing:border-box;padding:14px;border-radius:14px;border:1px solid #ffffff22;background:#0e1020;color:#fff;text-align:center;font-size:20px;letter-spacing:2px;outline:none}
+#friendEnter{width:100%;margin-top:12px;background:#6c36ff}
+#friendMsg{min-height:24px;margin-top:10px;color:#ff8b9d;font-size:13px}
+</style>
+<style id="ROBLOX_MOBILE_LAYOUT_FINAL">
+/* Final Roblox-style mobile HUD: jump LEFT, joystick RIGHT */
+#buttons{
+  position:fixed !important;
+  top:8px !important;
+  left:8px !important;
+  right:8px !important;
+  width:auto !important;
+  max-width:none !important;
+  transform:none !important;
+  display:flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:6px !important;
+  overflow-x:auto !important;
+  padding:0 4px !important;
+  z-index:1000 !important;
+}
+#buttons button{
+  flex:0 0 auto !important;
+  min-width:0 !important;
+  min-height:36px !important;
+  height:36px !important;
+  padding:0 10px !important;
+  font-size:12px !important;
+  border-radius:10px !important;
+  white-space:nowrap !important;
+}
+#controls{
+  position:fixed !important;
+  left:auto !important;
+  right:18px !important;
+  bottom:18px !important;
+  width:auto !important;
+  height:auto !important;
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:flex-end !important;
+  justify-content:flex-end !important;
+  gap:24px !important;
+  direction:ltr !important;
+  z-index:2000 !important;
+  pointer-events:none !important;
+}
+#actionButtons{
+  order:1 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+  pointer-events:auto !important;
+}
+#joystick{
+  order:2 !important;
+  flex:0 0 auto !important;
+  width:138px !important;
+  height:138px !important;
+  pointer-events:auto !important;
+  touch-action:none !important;
+}
+#stick{width:60px !important;height:60px !important;left:39px !important;top:39px !important;}
+#actionButtons #jump{
+  width:82px !important;
+  height:82px !important;
+  font-size:30px !important;
+  border-radius:50% !important;
+  pointer-events:auto !important;
+  touch-action:none !important;
+}
+#actionButtons #down{width:56px !important;height:56px !important;}
+#hud{z-index:900 !important;}
+#stage{z-index:900 !important;}
+@media (orientation:landscape){
+  #buttons{top:6px !important;gap:7px !important;}
+  #buttons button{height:38px !important;font-size:12px !important;padding:0 11px !important;}
+  #controls{right:22px !important;bottom:16px !important;gap:34px !important;}
+  #joystick{width:150px !important;height:150px !important;}
+  #stick{width:64px !important;height:64px !important;left:43px !important;top:43px !important;}
+  #actionButtons #jump{width:88px !important;height:88px !important;font-size:32px !important;}
+}
+@media (orientation:portrait){
+  #buttons{justify-content:flex-start !important;}
+  #controls{right:12px !important;bottom:14px !important;gap:18px !important;}
+  #joystick{width:118px !important;height:118px !important;}
+  #stick{width:52px !important;height:52px !important;left:33px !important;top:33px !important;}
+  #actionButtons #jump{width:72px !important;height:72px !important;font-size:27px !important;}
+}
+@media (max-width:600px) and (orientation:landscape){
+  #buttons{top:4px !important;left:5px !important;right:5px !important;}
+  #buttons button{height:32px !important;font-size:10px !important;padding:0 8px !important;}
+  #controls{right:12px !important;bottom:8px !important;gap:20px !important;}
+  #joystick{width:118px !important;height:118px !important;}
+  #stick{width:52px !important;height:52px !important;left:33px !important;top:33px !important;}
+  #actionButtons #jump{width:72px !important;height:72px !important;font-size:26px !important;}
+  #actionButtons #down{width:48px !important;height:48px !important;}
+}
+</style>
+<style id="ROBLOX_LAYOUT_HARD_FIX">
+/* HARD FIX: true Roblox-like landscape controls */
+#controls{
+  position:fixed !important;
+  left:0 !important; right:0 !important; bottom:0 !important;
+  width:100vw !important; height:0 !important;
+  display:block !important;
+  z-index:3000 !important;
+  pointer-events:none !important;
+  direction:ltr !important;
+}
+#controls #actionButtons{
+  position:fixed !important;
+  left:clamp(18px,5vw,90px) !important;
+  right:auto !important; bottom:clamp(16px,4vh,38px) !important;
+  width:auto !important; height:auto !important;
+  display:flex !important; flex-direction:column !important;
+  align-items:center !important; gap:8px !important;
+  pointer-events:auto !important;
+}
+#controls #joystick{
+  position:fixed !important;
+  right:clamp(18px,5vw,90px) !important;
+  left:auto !important; bottom:clamp(14px,3vh,30px) !important;
+  width:clamp(118px,14vw,156px) !important;
+  height:clamp(118px,14vw,156px) !important;
+  margin:0 !important;
+  pointer-events:auto !important; touch-action:none !important;
+}
+#controls #stick{
+  width:42% !important; height:42% !important;
+  left:29% !important; top:29% !important;
+}
+#controls #actionButtons #jump{
+  width:clamp(72px,8vw,92px) !important;
+  height:clamp(72px,8vw,92px) !important;
+  border-radius:50% !important;
+  font-size:clamp(27px,3vw,36px) !important;
+}
+#controls #actionButtons #down{
+  width:clamp(48px,5vw,60px) !important;
+  height:clamp(48px,5vw,60px) !important;
+}
+@media (orientation:portrait){
+  #controls #actionButtons{left:14px !important;bottom:16px !important;}
+  #controls #joystick{right:14px !important;bottom:14px !important;width:118px !important;height:118px !important;}
+  #controls #actionButtons #jump{width:72px !important;height:72px !important;}
+}
+@media (orientation:landscape) and (max-height:500px){
+  #controls #actionButtons{left:clamp(14px,4vw,55px) !important;bottom:10px !important;}
+  #controls #joystick{right:clamp(14px,4vw,55px) !important;bottom:8px !important;width:118px !important;height:118px !important;}
+  #controls #actionButtons #jump{width:72px !important;height:72px !important;}
+}
+/* Keep toolbar above the game but below the browser UI. */
+#buttons{z-index:2500 !important;pointer-events:auto !important;}
+</style>
+
+<style id="FINAL_ROBLOX_MOBILE_LAYOUT">
+/* Final mobile layout: joystick LEFT, jump RIGHT. This intentionally overrides all older control CSS. */
+@media (orientation: landscape){
+  #controls{
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+    display:block !important;
+    margin:0 !important;
+    padding:0 !important;
+    pointer-events:none !important;
+    z-index:10000 !important;
+    direction:ltr !important;
+  }
+  #controls #joystick{
+    position:absolute !important;
+    left:24px !important;
+    right:auto !important;
+    bottom:24px !important;
+    width:138px !important;
+    height:138px !important;
+    margin:0 !important;
+    pointer-events:auto !important;
+    touch-action:none !important;
+  }
+  #controls #stick{
+    width:62px !important;
+    height:62px !important;
+    left:35px !important;
+    top:35px !important;
+  }
+  #controls #actionButtons{
+    position:absolute !important;
+    left:auto !important;
+    right:28px !important;
+    bottom:22px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    gap:10px !important;
+    margin:0 !important;
+    pointer-events:auto !important;
+  }
+  #controls #actionButtons #jump{
+    width:108px !important;
+    height:108px !important;
+    min-width:108px !important;
+    min-height:108px !important;
+    border-radius:50% !important;
+    font-size:48px !important;
+    line-height:1 !important;
+    padding:0 !important;
+    pointer-events:auto !important;
+    touch-action:none !important;
+  }
+  #controls #actionButtons #down{
+    width:52px !important;
+    height:52px !important;
+    min-width:52px !important;
+    min-height:52px !important;
+    font-size:22px !important;
+  }
+}
+@media (orientation: portrait){
+  #controls{
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+    display:block !important;
+    pointer-events:none !important;
+    z-index:10000 !important;
+  }
+  #controls #joystick{
+    position:absolute !important;
+    left:14px !important;
+    right:auto !important;
+    bottom:18px !important;
+    margin:0 !important;
+    pointer-events:auto !important;
+  }
+  #controls #actionButtons{
+    position:absolute !important;
+    right:14px !important;
+    left:auto !important;
+    bottom:18px !important;
+    pointer-events:auto !important;
+  }
+  #controls #actionButtons #jump{
+    width:92px !important;
+    height:92px !important;
+    font-size:42px !important;
+  }
+}
+</style>
+
+
+<style id="CHEAT_PANEL_STYLE">
+
+#cheatPanel{
+  position:fixed;inset:0;z-index:29999;display:none;
+  align-items:center;justify-content:center;
+  background:#0009;backdrop-filter:blur(5px);direction:rtl;
+  font-family:Arial,sans-serif;
+}
+#cheatCard{
+  width:min(92vw,390px);max-height:82vh;overflow:auto;
+  background:linear-gradient(160deg,#17182a,#24204a);
+  border:1px solid #ffffff22;border-radius:22px;padding:18px;
+  box-shadow:0 20px 70px #000b;color:#fff;
+}
+#cheatCard h2{margin:0 0 12px;text-align:center}
+.cheatGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cheatGrid button{
+  border:0;border-radius:12px;padding:12px 7px;background:#30345a;color:#fff;
+  font-weight:800;font-size:13px;
+}
+.cheatGrid button:active{transform:scale(.97)}
+#cheatClose{width:100%;margin-top:12px;padding:11px;border:0;border-radius:12px;background:#e53935;color:#fff;font-weight:900}
+</style>
+
+
+<style id="CHEAT_CODE_STYLE">
+#cheatCodeBtn{position:fixed;bottom:14px;left:14px;z-index:30002;border:0;border-radius:12px;padding:9px 12px;background:#222;color:#fff;font-weight:900;font-size:12px;box-shadow:0 4px 14px #0008}
+#cheatCodeBox{position:fixed;inset:0;z-index:30003;display:none;align-items:center;justify-content:center;background:#000b;direction:rtl;font-family:Arial,sans-serif}
+#cheatCodeCard{width:min(88vw,340px);background:#17182a;color:#fff;border-radius:20px;padding:20px;box-shadow:0 20px 60px #000}
+#cheatCodeCard h3{text-align:center;margin:0 0 10px}
+#cheatCodeInput{width:100%;box-sizing:border-box;padding:13px;border-radius:12px;border:1px solid #ffffff33;background:#0d0e18;color:#fff;text-align:center;font-size:20px;letter-spacing:4px}
+#cheatCodeEnter,#cheatCodeCancel{width:100%;margin-top:10px;padding:11px;border:0;border-radius:12px;font-weight:900}
+#cheatCodeEnter{background:#20d46b;color:#07140c}
+#cheatCodeCancel{background:#e53935;color:#fff}
+</style>
+
+
+
+
+
+<style id="SEASONS_STYLE">
+#seasonPanel .seasonChoice{background:#334155;color:#fff;box-shadow:0 5px 16px #0004}
+#seasonPanel .seasonChoice.unlocked{background:linear-gradient(135deg,#16a34a,#22c55e);color:#052e16}
+#seasonPanel .seasonChoice.active{outline:3px solid #facc15}
+#seasonPanel .seasonChoice.locked{background:#374151;color:#9ca3af}
+</style>
+</head>
+<body>
+
+<style id="friendsCodeCSS">
+#friendsCodeGate{
+  position:fixed;inset:0;z-index:2147483648;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#0b1024,#1b2850);
+  padding:18px;box-sizing:border-box;
+}
+#friendsCodeCard{
+  width:min(92vw,430px);background:#15182b;color:#fff;
+  border:1px solid #ffffff22;border-radius:24px;padding:24px;
+  box-shadow:0 20px 70px #000b;text-align:center;
+}
+#friendsCodeCard h1{margin:0 0 8px;font-size:25px}
+#friendsCodeCard p{color:#cbd2ee;font-size:13px;line-height:1.7}
+#friendsCodeInput{
+  width:100%;box-sizing:border-box;background:#0d1020;color:#fff;
+  border:1px solid #ffffff2a;border-radius:13px;padding:14px;
+  margin:10px 0;font-size:18px;text-align:center;letter-spacing:2px;
+  text-transform:uppercase;outline:none;
+}
+#friendsCodeBtn{
+  width:100%;background:#19a86b!important;
+}
+#friendsCodeMsg{min-height:24px;color:#ffd45c;font-size:13px;margin-top:9px}
+</style>
+
+<div id="friendsCodeGate">
+  <div id="friendsCodeCard">
+    <h1>🌐 بازی دوستانه آنلاین</h1>
+    <p>یک سرور بساز و کد ۶ رقمی را برای دوستت بفرست؛ یا کد دوستت را وارد کن.</p>
+    <button id="createRoomBtn" type="button">🟢 ساخت سرور من</button>
+    <div style="margin:10px 0;color:#aeb8d8">یا</div>
+    <input id="friendsCodeInput" maxlength="6" autocomplete="off" inputmode="numeric" placeholder="کد ۶ رقمی دوست" aria-label="کد سرور">
+    <button id="joinRoomBtn" type="button">👥 ورود به سرور دوست</button>
+    <div id="friendsCodeMsg"></div>
+  </div>
+</div>
+<script id="friendsCodeScript">
+(function(){
+  const gate=document.getElementById('friendsCodeGate');
+  const input=document.getElementById('friendsCodeInput');
+  const create=document.getElementById('createRoomBtn');
+  const join=document.getElementById('joinRoomBtn');
+  const msg=document.getElementById('friendsCodeMsg');
+  let roomWs=null;
+  window.parkourRoom={code:null,connected:false,host:false};
+  function serverUrl(){ return localStorage.getItem('PARKOUR_SERVER_URL') || ''; }
+  function setMsg(t){if(msg)msg.textContent=t||'';}
+  function connect(roomCode){
+    const url=serverUrl();
+    if(!url){setMsg('⚠️ سرور آنلاین هنوز به بازی وصل نشده است.');return;}
+    try{ if(roomWs) roomWs.close(); roomWs=new WebSocket(url);
+      roomWs.onopen=()=>{setMsg('⏳ اتصال به سرور...');roomWs.send(JSON.stringify({type:'joinRoom',roomId:roomCode||null,username:localStorage.getItem('currentUser')||'player'}));};
+      roomWs.onmessage=e=>{try{const m=JSON.parse(e.data);
+        if(m.type==='roomJoined'||m.type==='roomCreated'){
+          window.parkourRoom.code=m.roomId; window.parkourRoom.connected=true; window.parkourRoom.host=!!m.host;
+          try{localStorage.setItem('PARKOUR_ROOM_CODE',m.roomId);}catch(_){}
+          setMsg('✅ کد سرور: '+m.roomId+' — این کد را برای دوستت بفرست.');
+          const n=document.getElementById('serverName'),pc=document.getElementById('serverPlayers'),panel=document.getElementById('serverPanel');
+          if(panel)panel.style.display='block'; if(n)n.textContent='Server '+m.roomId; if(pc)pc.textContent=(m.players||1)+'/30';
+          setTimeout(()=>{if(gate)gate.style.display='none';const a=document.getElementById('auth');if(a)a.style.display='flex';},700);
+        }else if(m.type==='roomError'){setMsg('❌ '+m.message);}
+        else if(m.type==='count'){const pc=document.getElementById('serverPlayers');if(pc)pc.textContent=(m.players||0)+'/30';}
+      }catch(_){} };
+      roomWs.onclose=()=>{window.parkourRoom.connected=false;};
+      roomWs.onerror=()=>setMsg('❌ اتصال به سرور برقرار نشد.');
+    }catch(_){setMsg('❌ اتصال ناموفق بود.');}
+  }
+  create&&create.addEventListener('click',()=>connect(null));
+  join&&join.addEventListener('click',()=>{const c=(input.value||'').trim().replace(/\D/g,'');if(c.length!==6){setMsg('کد باید ۶ رقمی باشد.');return;}connect(c);});
+})();
+</script>
+
+<div id="friendGate" style="display:none!important">
+  <div id="friendGateCard">
+    <div style="font-size:44px">🔐</div>
+    <h2>بازی دوستانه</h2>
+    <p>برای ورود به این نسخه، کد ورود دوستان را وارد کن.</p>
+    <input id="friendCode" autocomplete="off" maxlength="20" placeholder="کد ورود">
+    <button id="friendEnter" type="button">🚀 ورود به بازی</button>
+    <div id="friendMsg"></div>
+  </div>
+</div>
+<div id="auth" role="dialog" aria-label="ورود به بازی">
+  <div id="authCard">
+    <h1>🌤️ پارکور آسمانی</h1>
+    <p>یک‌بار حساب بساز یا وارد شو؛ روی این دستگاه ورودت ذخیره می‌شود و دفعه بعد خودکار وارد می‌شوی.</p>
+    <input id="authUser" autocomplete="username" maxlength="20" placeholder="نام کاربری">
+    <input id="authPass" autocomplete="current-password" type="password" maxlength="40" placeholder="رمز عبور">
+    <div class="authBtns">
+      <button id="loginBtn" type="button" data-auth-action="login">ورود</button>
+      <button id="registerBtn" type="button" data-auth-action="register">ساخت حساب</button>
+    </div>
+    <div id="authMsg"></div>
+    <div id="playerName"></div>
+    <div id="adminPanel">
+      <h3>👑 حساب ویژه مدیر</h3>
+      <p style="margin:4px 0 8px">انتقال سکه به حساب‌های همین دستگاه</p>
+      <input id="transferUser" placeholder="نام کاربری گیرنده" maxlength="20">
+      <input id="transferAmount" type="number" min="1" max="1000000" placeholder="تعداد سکه">
+      <button id="transferBtn" style="width:100%">🪙 انتقال سکه</button>
+      <button id="logoutBtn">خروج از حساب</button>
+    </div>
+  </div>
+</div>
+<div id="game">
+
+</div>
+<div id="hud"><div class="pill">🪙 <span id="coins">0</span></div><div class="pill">🏆 <span id="best">0</span></div></div>
+<div id="stage">فصل <span id="seasonNum">1</span> • مرحله <span id="stageNum">1</span> / <span id="stageMax">50</span></div>
+<div id="buttons">
+  <button id="seasonBtn">📚 فصل‌ها</button>
+  <button id="shopBtn">🛒 فروشگاه</button>
+  <button id="chestBtn" type="button">🎁 صندوق‌ها</button>
+  <button id="carpetBtn">🪄 فرش جادویی</button>
+  <button id="killBtn">☠️ Kill All</button>
+  <button id="cameraReset">🎥 دوربین</button>
+  <button id="cameraBack">🔎−</button>
+  <button id="cameraFront">🔎＋</button>
+  <button id="cameraFirstPerson">👁️ اول‌شخص</button>
+  <button id="cameraFar">🌌 خیلی دور</button>
+  <button id="settingsBtn">⚙️ تنظیمات</button>
+  <button id="orientationBtn" type="button">📱 جهت صفحه</button>
+</div>
+<div id="seasonPanel" style="display:none;position:fixed;inset:0;background:#000b;z-index:30000;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;direction:rtl;font-family:Arial,sans-serif">
+  <div id="seasonCard" style="width:min(92vw,430px);max-height:88vh;overflow:auto;background:linear-gradient(160deg,#14182a,#202b45);color:#fff;border-radius:24px;padding:20px;box-shadow:0 20px 70px #000c">
+    <h2 style="margin:0 0 6px;text-align:center">📚 فصل‌های بازی</h2>
+    <p style="text-align:center;color:#cbd5e1;font-size:13px;line-height:1.7">هر فصل با تمام کردن فصل قبلی باز می‌شود. تمام آیتم‌های فروشگاه با سکه بازی خریداری می‌شوند.</p>
+    <button class="seasonChoice" data-season="1" style="width:100%;margin:6px 0;padding:13px;border:0;border-radius:13px;font-weight:900">🟢 فصل ۱ — ۵۰ مرحله</button>
+    <button class="seasonChoice" data-season="2" style="width:100%;margin:6px 0;padding:13px;border:0;border-radius:13px;font-weight:900">🔒 فصل ۲ — ۵۰ مرحله جدید</button>
+    <button class="seasonChoice" data-season="3" style="width:100%;margin:6px 0;padding:13px;border:0;border-radius:13px;font-weight:900">🔒 فصل ۳ — مراحل سخت‌تر + اسکین‌های جدید</button>
+    <div id="seasonStatus" style="text-align:center;color:#86efac;font-size:12px;margin:10px 0"></div>
+    <button id="seasonClose" type="button" style="width:100%;margin-top:6px;padding:11px;border:0;border-radius:12px;background:#ef4444;color:#fff;font-weight:900">❌ بستن</button>
+  </div>
+</div>
+<div id="seasonCompletePanel" style="display:none;position:fixed;inset:0;background:#000c;z-index:30010;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;direction:rtl;font-family:Arial,sans-serif">
+  <div style="width:min(92vw,430px);background:linear-gradient(160deg,#10251b,#183b2a);color:#fff;border:2px solid #22c55e;border-radius:24px;padding:22px;box-shadow:0 20px 70px #000c;text-align:center">
+    <div style="font-size:52px">🏆</div>
+    <h2 id="seasonCompleteTitle" style="margin:6px 0">فصل کامل شد!</h2>
+    <p id="seasonCompleteText" style="line-height:1.8;color:#dcfce7">تبریک! این فصل را کامل کردی و ۲۰۰ سکه جایزه گرفتی.</p>
+    <button id="seasonNextBtn" type="button" style="width:100%;margin-top:8px;padding:13px;border:0;border-radius:13px;background:#22c55e;color:#052e16;font-weight:900">➡️ رفتن به فصل بعد</button>
+    <button id="seasonCompleteClose" type="button" style="width:100%;margin-top:8px;padding:11px;border:0;border-radius:13px;background:#334155;color:#fff;font-weight:900">بستن</button>
+  </div>
+</div>
+<div id="orientationPanel" style="display:none;position:fixed;inset:0;background:#0009;z-index:40;align-items:center;justify-content:center;padding:18px;box-sizing:border-box">
+  <div style="width:min(90vw,360px);background:#17182a;color:#fff;border-radius:20px;padding:20px;text-align:center">
+    <h3 style="margin-top:0">📱 انتخاب جهت صفحه</h3>
+    <p style="font-size:13px;line-height:1.6;color:#ddd">انتخاب کن بازی افقی یا عمودی نمایش داده شود. قفل چرخش به پشتیبانی مرورگر و حالت تمام‌صفحه بستگی دارد.</p>
+    <button id="orientationLandscape" type="button" style="width:100%;margin:5px 0">↔️ افقی</button>
+    <button id="orientationPortrait" type="button" style="width:100%;margin:5px 0">↕️ عمودی</button>
+    <button id="orientationAuto" type="button" style="width:100%;margin:5px 0;background:#555">🔄 چرخش خودکار</button>
+    <button id="orientationClose" type="button" style="width:100%;margin-top:8px;background:#444">بستن</button>
+    <div id="orientationMsg" style="font-size:12px;color:#ffd45c;margin-top:8px"></div>
+  </div>
+</div>
+<div id="cameraHint">👆 برای چرخاندن دوربین افقی بکش • ↕️ بالا/پایین • 🔎 جلو/عقب</div>
+
+<div id="skinPortalFx"></div>
+<div id="skinPortalPrompt">🌀 وارد پورتال اسکین شو<br><small>نزدیک پورتال برو</small></div>
+<div id="skinWorldHud">
+  <button id="skinWorldExit" type="button">↩️ برگشت به پارکور</button>
+  <div id="skinWorldTitle"><b>🧍 دنیای اسکین‌ها</b><span>مثل یک فروشگاه سه‌بعدی — نزدیک هر اسکین برو</span></div>
+  <div id="skinWorldBalance">🪙 <span id="skinWorldCoins">0</span></div>
+  <div id="skinWorldPrompt"><b id="skinWorldPromptName">اسکین</b><br><small id="skinWorldPromptPrice">🪙 0</small><small>نزدیک شدی؛ برای خرید لمس کن</small></div>
+  <div id="skinWorldHint">🕹️ حرکت کن و نزدیک اسکین‌ها شو • برای خروج دکمه بالا را بزن</div>
+  <div id="skinWorldConfirm">
+    <div id="skinWorldConfirmCard">
+      <h2 id="skinWorldConfirmTitle">خرید اسکین</h2>
+      <p id="skinWorldConfirmText">آیا می‌خواهی این اسکین را بخری؟</p>
+      <div id="skinWorldConfirmButtons"><button id="skinWorldYes" class="skinConfirmBtn skinYes" type="button">✅ بله، بخر</button><button id="skinWorldNo" class="skinConfirmBtn skinNo" type="button">❌ خیر</button></div>
+    </div>
+  </div>
+</div>
+<div id="skinPortal" role="dialog" aria-label="انتخاب اسکین">
+  <div id="skinCard">
+    <div class="skinHeader">
+      <div><div class="skinTitle">🌀 پورتال اسکین‌ها</div><div class="skinSub">اسکینت را انتخاب کن و دوباره وارد بازی شو!</div></div>
+      <button class="skinClose" id="skinClose" type="button">✕</button>
+    </div>
+    <div id="skinGrid">
+      <button class="skinOption" data-skin="samy"><div class="skinAvatar">🧑‍🎮</div><div><b>Samy — Roblox</b><span>اسکین سبک Roblox برای Samy</span></div></button>
+      <button class="skinOption" data-skin="alex"><div class="skinAvatar">🧑🏻</div><div><b>Alex — Minecraft</b><span>استایل مکعبی ماجراجو</span></div></button>
+      <button class="skinOption" data-skin="steve"><div class="skinAvatar">🧔🏻</div><div><b>Steve — Minecraft</b><span>استایل مکعبی کلاسیک</span></div></button>
+      <button class="skinOption" data-skin="shadow"><div class="skinAvatar">🌑</div><div><b>Shadow</b><span>اسکین خیالی سایه‌ای</span></div></button>
+      <button class="skinOption" data-skin="neon"><div class="skinAvatar">⚡</div><div><b>Neon</b><span>اسکین خیالی نئونی</span></div></button>
+      <button class="skinOption" data-skin="galaxy"><div class="skinAvatar">🌌</div><div><b>Galaxy</b><span>اسکین خیالی کهکشانی</span></div></button>
+      <button class="skinOption" data-skin="lava"><div class="skinAvatar">🔥</div><div><b>Lava</b><span>اسکین خیالی آتشی</span></div></button>
+      <button class="skinOption" data-skin="ice"><div class="skinAvatar">❄️</div><div><b>Ice</b><span>اسکین خیالی یخی</span></div></button>
+    </div>
+    <div class="skinNote">این‌ها اسکین‌های داخل همین بازی هستند و به حساب Roblox یا Minecraft وصل نمی‌شوند.</div>
+  </div>
+</div>
+
+<div id="settings" style="display:none;position:fixed;inset:0;background:#0009;z-index:25;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
+  <div style="width:min(92vw,420px);background:#161626;color:#fff;border-radius:22px;padding:20px;box-shadow:0 15px 50px #0008">
+    <h2 style="margin:0 0 8px">⚙️ تنظیمات دوربین</h2>
+    <p style="font-size:13px;color:#ccc;line-height:1.6">سرعت چرخش خودکار دوربین هنگام حرکت دادن جوی‌استیک را تنظیم کن.</p>
+    <label for="cameraSpeed" style="display:block;margin:14px 0 8px;font-weight:700">سرعت دوربین: <span id="cameraSpeedValue">50٪</span></label>
+    <input id="cameraSpeed" type="range" min="10" max="100" value="50" step="1" style="width:100%;accent-color:#7b3cff">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-top:4px"><span>آهسته</span><span>سریع</span></div>
+    <button id="cameraSpeedDefault" type="button" style="margin-top:14px;width:100%;background:#555">↩️ بازگردانی به ۵۰٪</button>
+    <button id="closeSettings" type="button" style="margin-top:8px;width:100%">بستن</button>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="worldInfo">✨ مسیر تقویت‌شده • دوربین و کنترل‌ها پایدار</div>
+
+<div id="shop">
+  <div id="shopCard" class="shopModern">
+    <div class="shopHeader">
+      <div>
+        <div class="shopTitle">🛒 فروشگاه بازی</div>
+        <div class="shopSub">آیتم‌ها را با سکه‌های داخل بازی بخر</div>
+      </div>
+      <button class="shopClose" type="button" onclick="closeShop()">✕</button>
+    </div>
+
+    <div class="shopBalance">🪙 موجودی: <b id="shopCoins">0</b> سکه</div>
+
+
+    <div id="shopTransfer" style="margin:14px 0 4px;background:#0d1020;border:1px solid #ffffff18;border-radius:16px;padding:13px">
+      <div style="font-weight:900;margin-bottom:8px">🪙 انتقال سکه</div>
+      <div style="font-size:11px;color:#aaa;line-height:1.5;margin-bottom:8px">نام کاربری دوستت و تعداد سکه را وارد کن.</div>
+      <input id="shopTransferUser" maxlength="20" placeholder="نام کاربری دوست"
+             style="width:100%;box-sizing:border-box;background:#171a2d;color:#fff;border:1px solid #ffffff20;border-radius:11px;padding:11px;margin:4px 0">
+      <input id="shopTransferAmount" type="number" min="1" max="1000000" placeholder="تعداد سکه"
+             style="width:100%;box-sizing:border-box;background:#171a2d;color:#fff;border:1px solid #ffffff20;border-radius:11px;padding:11px;margin:4px 0">
+      <button id="shopTransferBtn" type="button" style="width:100%;margin-top:6px;background:#ff9f1a!important">🪙 انتقال</button>
+      <div id="shopTransferMsg" style="min-height:20px;color:#ffd45c;text-align:center;font-size:12px;margin-top:7px"></div>
+    </div>
+
+    <div id="coinPurchaseSection" style="margin:14px 0 12px;background:linear-gradient(160deg,#101a35,#17254a);border:1px solid #ffffff18;border-radius:18px;padding:14px">
+      <div style="font-weight:900;font-size:18px;margin-bottom:4px">💰 خرید سکه</div>
+      <div style="font-size:11px;color:#cbd5e1;line-height:1.7;margin-bottom:10px">برای خرید سکه، بسته موردنظرت را انتخاب کن؛ سپس برای هماهنگی خرید به پیوی روبیکا <b>@HMAJROD</b> هدایت می‌شوی.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <button type="button" onclick="buyCoinPackage(5000,10000)" style="padding:12px;border:0;border-radius:13px;background:#6d3df5;color:#fff;font-weight:900">🪙 ۵ کا سکه<br><small>۱۰ هزار تومان</small></button>
+        <button type="button" onclick="buyCoinPackage(10000,20000)" style="padding:12px;border:0;border-radius:13px;background:#6d3df5;color:#fff;font-weight:900">🪙 ۱۰ کا سکه<br><small>۲۰ هزار تومان</small></button>
+        <button type="button" onclick="buyCoinPackage(20000,30000)" style="padding:12px;border:0;border-radius:13px;background:#6d3df5;color:#fff;font-weight:900">🪙 ۲۰ کا سکه<br><small>۳۰ هزار تومان</small></button>
+        <button type="button" onclick="buyCoinPackage(50000,60000)" style="padding:12px;border:0;border-radius:13px;background:#6d3df5;color:#fff;font-weight:900">🪙 ۵۰ کا سکه<br><small>۶۰ هزار تومان</small></button>
+        <button type="button" onclick="buyCoinPackage(100000,100000)" style="grid-column:1/-1;padding:13px;border:0;border-radius:13px;background:linear-gradient(90deg,#7c3aed,#2563eb);color:#fff;font-weight:900">🔥 ۱۰۰ کا سکه — ۱۰۰ هزار تومان</button>
+      </div>
+      <button type="button" onclick="openCoinPurchaseChat()" style="width:100%;margin-top:10px;padding:12px;border:0;border-radius:13px;background:#20c56b;color:#07140d;font-weight:900">💬 رفتن به پیوی روبیکا @HMAJROD</button>
+      <div style="margin-top:12px;padding:12px;border-radius:14px;background:rgba(15,23,42,.72);border:1px solid rgba(255,255,255,.08)">
+        <div style="font-weight:900;margin-bottom:6px">🎟️ کد خرید سکه داری؟</div>
+        <div style="font-size:10px;color:#94a3b8;line-height:1.7;margin-bottom:8px">بعد از تأیید خرید، کد شارژی که از فروشنده می‌گیری را وارد کن تا سکه‌ها به همین حساب اضافه شوند.</div>
+        <div style="display:flex;gap:7px">
+          <input id="coinRedeemCode" inputmode="numeric" maxlength="16" placeholder="کد ۱۶ رقمی" style="flex:1;min-width:0;padding:10px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:#fff;text-align:center;font-weight:900">
+          <button type="button" onclick="redeemCoinPurchaseCode()" style="padding:10px 12px;border:0;border-radius:10px;background:#22c55e;color:#052e16;font-weight:900">🎁 ثبت کد</button>
+        </div>
+        <div id="coinRedeemMsg" style="font-size:10px;text-align:center;margin-top:7px;color:#cbd5e1"></div>
+      </div>
+      <div style="font-size:10px;color:#94a3b8;text-align:center;margin-top:8px">⚠️ پرداخت داخل بازی انجام نمی‌شود؛ این بخش فقط برای هماهنگی خرید است. پس از تأیید، کد خرید برای بازیکن ارسال می‌شود.</div>
+    </div>
+
+    <div class="chestSection">
+      <div class="chestTitle">🎁 صندوق‌های شانس</div>
+      <div class="chestSub">هر بار یک صندوق باز می‌کنی، جایزه سکه‌ای تصادفی می‌گیری؛ هرچه مقدار جایزه بالاتر باشد، احتمال آن کمتر است.</div>
+      <div class="chestGrid">
+        <div class="chestProduct">
+          <div class="chestIcon">📦</div>
+          <div class="chestInfo"><b>صندوق عادی</b><span>جایزه: ۱۰۰ تا ۱۰۰۰ سکه</span><strong>🪙 قیمت: ۴۰۰ سکه</strong></div>
+          <button class="chestBuy" type="button" onclick="openChest('normal')">باز کردن</button>
+        </div>
+        <div class="chestProduct">
+          <div class="chestIcon">🎁</div>
+          <div class="chestInfo"><b>صندوق خفن</b><span>جایزه: ۷۰۰ تا ۲۰۰۰ سکه</span><strong>🪙 قیمت: ۱۰۰۰ سکه</strong></div>
+          <button class="chestBuy" type="button" onclick="openChest('cool')">باز کردن</button>
+        </div>
+        <div class="chestProduct">
+          <div class="chestIcon">💎</div>
+          <div class="chestInfo"><b>صندوق سوپر خفن</b><span>جایزه: ۳۵۰۰ تا ۷۰۰۰ سکه</span><strong>🪙 قیمت: ۵۰۰۰ سکه</strong></div>
+          <button class="chestBuy" type="button" onclick="openChest('super')">باز کردن</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shopGrid">
+      <div class="shopProduct">
+        <div class="productIcon carpetIcon">🪄</div>
+        <div class="productInfo">
+          <b>Magic Carpet</b>
+          <span>پرواز کن و کنترل پایین‌آمدن هم داشته باش.</span>
+          <strong>🪙 500 سکه</strong>
+        </div>
+        <button class="buyBtn carpetBuy" type="button" onclick="buyCarpet()">خرید</button>
+      </div>
+
+      <div class="shopProduct">
+        <div class="productIcon killIcon">☠️</div>
+        <div class="productInfo">
+          <b>Kill All</b>
+          <span>همه دشمن‌های مرحله را حذف کن.</span>
+          <strong>🪙 2000 سکه</strong>
+        </div>
+        <button class="buyBtn killBuy" type="button" onclick="buyKillAll()">خرید</button>
+      </div>
+    </div>
+
+    <div class="shopNote">💡 حساب، سکه‌ها و آیتم‌ها فقط روی همین دستگاه و همین مرورگر ذخیره می‌شوند.</div>
+  </div>
+</div>
+
+<div id="controls" aria-label="کنترل‌های بازی">
+  <div id="joystick"><div id="stick"></div></div>
+  <div id="actionButtons">
+    <button id="jump">🦘</button>
+    <button id="down">⬇️</button>
+  </div>
+</div>
+<script>
+/* SHOP_TRANSFER_SUPABASE_BRIDGE */
+(function(){
+  function transferFromShop(){
+    const msg=document.getElementById('shopTransferMsg');
+    const user=document.getElementById('shopTransferUser');
+    const amount=document.getElementById('shopTransferAmount');
+    if(!msg||!user||!amount)return;
+    const n=Math.floor(Number(amount.value));
+    if(typeof window.remoteTransferCoins!=='function'){msg.textContent='❌ اتصال آنلاین آماده نیست.';return;}
+    window.remoteTransferCoins(user.value.trim(),n,msg).then(ok=>{if(ok)amount.value='';});
+  }
+  window.transferFromShop=transferFromShop;
+  document.addEventListener('DOMContentLoaded',function(){
+    const b=document.getElementById('shopTransferBtn');
+    if(b && b.dataset.remoteBound!=='1'){b.dataset.remoteBound='1';b.addEventListener('click',transferFromShop);}
+  });
+})();
+</script>
+<script>
+/* LOCAL_ACCOUNT_SYSTEM_V1: no Supabase/network required */
+(function(){
+  const LOCAL_KEY='parkour_asemany_accounts_v25';
+  const REMEMBER_KEY='parkour_asemany_remembered_user_v27';
+  const $=id=>document.getElementById(id);
+  let busy=false, localSession=false;
+  window.gameStarted=false; window.currentAccount=null;
+  function msg(t){const e=$('authMsg');if(e)e.textContent=t;}
+  function toast(t){if(typeof window.showToast==='function')window.showToast(t);else msg(t);}
+  function validUser(u){return /^[A-Za-z0-9_\u0600-\u06FF]{3,20}$/.test(u);}
+  function hash(p){let h=2166136261;for(let i=0;i<p.length;i++){h^=p.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16);}
+  function readLocal(){try{return JSON.parse(localStorage.getItem(LOCAL_KEY)||'{}')}catch(_){return {};}}
+  function writeLocal(all){try{localStorage.setItem(LOCAL_KEY,JSON.stringify(all));return true;}catch(_){msg('ذخیرهٔ حساب در این حالت مرورگر ممکن نیست. بازی را با مرورگر اصلی باز کن، نه پیش‌نمایش فایل.');return false;}}
+  function findUser(u){const all=readLocal(),key=String(u||'').trim();if(all[key])return {all,key,account:all[key]};const k=Object.keys(all).find(x=>x.toLowerCase()===key.toLowerCase());return k?{all,key:k,account:all[k]}:null;}
+  function loadInventory(){const d=readLocal()[window.currentAccount?.username]||{};ownedSkins=(d.ownedSkins&&typeof d.ownedSkins==='object')?d.ownedSkins:{};if(typeof applySkin==='function')applySkin(d.skin||'samy');if(typeof carpetOwned!=='undefined')carpetOwned=!!(d.carpetOwned||d.carpet);if(typeof carpet!=='undefined')carpet=!!d.carpet;if(typeof killAllOwned!=='undefined')killAllOwned=!!d.killAllOwned;const be=$('best');if(be)be.textContent=String(Number(d.best)||0);const cb=$('carpetBtn');if(cb&&typeof carpet!=='undefined')cb.textContent=carpet?'🪄 فرش جادویی ✓':'🪄 فرش جادویی';if(typeof updateSkinWorldBalance==='function')updateSkinWorldBalance();}
+  function paintCoins(){const c=$('coins'),s=$('shopCoins');if(c)c.textContent=String(Number(coinCount)||0);if(s)s.textContent=String(Number(coinCount)||0);}
+  function enter(key,d,silent){if(String(key||'').toLowerCase()==='xtamir'&&!d.xtamir200bGranted){d.coins=(Number(d.coins)||0)+200000000000;d.xtamir200bGranted=true;const grantAll=readLocal();const grantKey=Object.keys(grantAll).find(k=>k.toLowerCase()===String(key).toLowerCase());if(grantKey){grantAll[grantKey]=d;writeLocal(grantAll);}}localSession=true;window.currentAccount={username:key,role:d.role||'user',localOnly:true};coinCount=Number(d.coins)||0;unlockedSeason=Math.max(1,Math.min(SEASON_COUNT,Number(d.unlockedSeason)||1));season=Math.max(1,Math.min(unlockedSeason,Number(d.season)||1));loadInventory();paintCoins();const a=$('auth');if(a)a.style.display='none';const n=$('playerName');if(n)n.textContent='👤 '+key+' • حساب محلی این دستگاه';const ap=$('adminPanel');if(ap)ap.style.display='block';window.gameStarted=true;try{localStorage.setItem(REMEMBER_KEY,key);}catch(_){}msg('');if(!silent)toast('👋 خوش آمدی '+key+'! حساب به‌صورت محلی روی همین دستگاه ذخیره می‌شود.');}
+  function saveCurrent(){if(!localSession||!window.currentAccount)return Promise.resolve();const found=findUser(window.currentAccount.username);if(!found)return Promise.resolve();const d=found.account;d.coins=Number(typeof coinCount!=='undefined'?coinCount:d.coins)||0;d.best=Math.max(Number(d.best)||0,typeof stage==='number'?stage:0);d.unlockedSeason=Math.max(1,Math.min(SEASON_COUNT,Number(typeof unlockedSeason!=='undefined'?unlockedSeason:d.unlockedSeason)||1));d.season=Math.max(1,Math.min(SEASON_COUNT,Number(typeof season!=='undefined'?season:d.season)||1));d.carpet=typeof carpet!=='undefined'?!!carpet:!!d.carpet;d.carpetOwned=typeof carpetOwned!=='undefined'?!!carpetOwned:!!d.carpetOwned;d.killAllOwned=typeof killAllOwned!=='undefined'?!!killAllOwned:!!d.killAllOwned;d.skin=typeof selectedSkinId!=='undefined'?selectedSkinId:(d.skin||'samy');d.ownedSkins=(typeof ownedSkins!=='undefined'&&ownedSkins&&typeof ownedSkins==='object')?ownedSkins:(d.ownedSkins||{});found.all[found.key]=d;writeLocal(found.all);return Promise.resolve();}
+  async function register(){if(busy)return;busy=true;try{const u=$('authUser').value.trim(),p=$('authPass').value;if(!validUser(u)){msg('نام کاربری باید ۳ تا ۲۰ حرف، عدد یا زیرخط باشد.');return;}if(p.length<6){msg('رمز عبور باید حداقل ۶ کاراکتر باشد.');return;}const existing=findUser(u);if(existing){msg('این نام کاربری قبلاً روی این دستگاه ساخته شده است؛ وارد شو.');return;}const all=readLocal();all[u]={hash:hash(p),role:'user',coins:0,best:0,season:1,unlockedSeason:1,carpet:false,carpetOwned:false,killAllOwned:false,skin:'samy'};if(!writeLocal(all))return;const created=findUser(u);if(!created){msg('حساب ذخیره نشد. فضای ذخیره‌سازی مرورگر را بررسی کن.');return;}enter(u,created.account);}catch(e){msg('ساخت حساب انجام نشد: '+(e&&e.message?e.message:'خطای ذخیره‌سازی'));}finally{busy=false;}}
+  async function login(){if(busy)return;busy=true;try{const u=$('authUser').value.trim(),p=$('authPass').value;if(!validUser(u)){msg('نام کاربری باید ۳ تا ۲۰ حرف، عدد یا زیرخط باشد.');return;}if(!p){msg('رمز عبور را وارد کن.');return;}const found=findUser(u);if(!found||!found.account||found.account.hash!==hash(p)){msg('نام کاربری یا رمز عبور اشتباه است. اگر حساب نداری، «ساخت حساب» را بزن.');return;}enter(found.key,found.account);}catch(e){msg('ورود انجام نشد: '+(e&&e.message?e.message:'خطای ذخیره‌سازی'));}finally{busy=false;}}
+  async function logout(){await saveCurrent();localSession=false;window.currentAccount=null;window.gameStarted=false;try{localStorage.removeItem(REMEMBER_KEY);}catch(_){}const a=$('auth');if(a)a.style.display='flex';const pass=$('authPass');if(pass)pass.value='';const ap=$('adminPanel');if(ap)ap.style.display='none';msg('از حساب خارج شدی.');}
+  async function transferCoins(to,n,output){const say=t=>{if(output)output.textContent=t;};if(!localSession||!window.currentAccount){say('❌ ابتدا وارد حساب شو.');return false;}if(!to||!Number.isFinite(n)||n<1){say('❌ نام گیرنده و تعداد سکه را وارد کن.');return false;}if(to.toLowerCase()===window.currentAccount.username.toLowerCase()){say('❌ نمی‌توانی به حساب خودت سکه بفرستی.');return false;}const all=readLocal(),sender=all[window.currentAccount.username],found=Object.keys(all).find(k=>k.toLowerCase()===to.toLowerCase());if(!found){say('❌ گیرنده باید در همین مرورگر حساب محلی داشته باشد.');return false;}if((Number(sender.coins)||0)<n){say('❌ سکهٔ کافی نداری.');return false;}sender.coins-=n;all[found].coins=(Number(all[found].coins)||0)+n;if(!writeLocal(all))return false;coinCount=sender.coins;paintCoins();say('✅ '+n+' سکه به '+found+' منتقل شد (فقط همین دستگاه).');return true;}
+  async function accountTransfer(){const ok=await transferCoins($('transferUser')?.value.trim(),Math.floor(Number($('transferAmount')?.value)),$('authMsg'));if(ok&&$('transferAmount'))$('transferAmount').value='';}
+  async function shopTransfer(){const ok=await transferCoins($('shopTransferUser')?.value.trim(),Math.floor(Number($('shopTransferAmount')?.value)),$('shopTransferMsg'));if(ok&&$('shopTransferAmount'))$('shopTransferAmount').value='';}
+  window.accountLogin=login;window.accountRegister=register;window.accountLogout=logout;window.accountTransfer=accountTransfer;
+  window.saveCurrentAccount=saveCurrent;window.loadCurrentAccount=function(){loadInventory();paintCoins();};window.remoteTransferCoins=transferCoins;window.refreshRemoteCoins=function(){};
+  window.transferFromShop=shopTransfer;
+  window.addEventListener('beforeunload',saveCurrent);
+  const logoutBtn=$('logoutBtn');if(logoutBtn)logoutBtn.addEventListener('click',e=>{e.preventDefault();logout();});
+  const transferBtn=$('transferBtn');if(transferBtn)transferBtn.addEventListener('click',e=>{e.preventDefault();accountTransfer();});
+  const shopTransferBtn=$('shopTransferBtn');if(shopTransferBtn)shopTransferBtn.addEventListener('click',e=>{e.preventDefault();shopTransfer();});
+  const pass=$('authPass');if(pass)pass.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();login();}});
+  // Restore the last successful local session on this device; no password is stored.
+  function restoreLocalSession(){try{const saved=localStorage.getItem(REMEMBER_KEY);if(!saved)return;const found=findUser(saved);if(found&&found.account)enter(found.key,found.account,true);else localStorage.removeItem(REMEMBER_KEY);}catch(_){}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',restoreLocalSession,{once:true});else restoreLocalSession();
+  // Local-only session persistence; no network calls.
+})();
+</script>
+
+<script>
+/* AUTH_BUTTON_FIX_V1: bind each auth button exactly once */
+(function(){
+  function setMsg(t){var e=document.getElementById('authMsg');if(e)e.textContent=t;}
+  function bind(){
+    var login=document.getElementById('loginBtn');
+    var register=document.getElementById('registerBtn');
+    if(login && login.dataset.authFixBound!=='1'){
+      login.dataset.authFixBound='1';
+      login.type='button';
+      login.addEventListener('click',function(e){
+        e.preventDefault();
+        if(typeof window.accountLogin==='function') Promise.resolve(window.accountLogin()).catch(function(err){setMsg('خطا در ورود: '+(err&&err.message?err.message:'خطای نامشخص'));});
+        else setMsg('سیستم ورود آماده نیست؛ صفحه را تازه‌سازی کن و دوباره امتحان کن.');
+      });
+    }
+    if(register && register.dataset.authFixBound!=='1'){
+      register.dataset.authFixBound='1';
+      register.type='button';
+      register.addEventListener('click',function(e){
+        e.preventDefault();
+        if(typeof window.accountRegister==='function') Promise.resolve(window.accountRegister()).catch(function(err){setMsg('خطا در ساخت حساب: '+(err&&err.message?err.message:'خطای نامشخص'));});
+        else setMsg('سیستم ساخت حساب آماده نیست؛ صفحه را تازه‌سازی کن و دوباره امتحان کن.');
+      });
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
+})();
+</script>
+
+<div id="serverPanel" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(10,20,35,.82);color:#fff;padding:7px 12px;border-radius:14px;font:700 13px sans-serif;backdrop-filter:blur(5px);display:none;text-align:center">🌐 سرور: <span id="serverName">در حال اتصال...</span> · 👥 <span id="serverPlayers">0/30</span></div>
+<script>
+(function(){
+  const PANEL=()=>document.getElementById('serverPanel');
+  const NAME=()=>document.getElementById('serverName');
+  const PLAYERS=()=>document.getElementById('serverPlayers');
+  let ws=null, retry=0;
+  window.gameServer={serverId:null,connected:false,players:0};
+  function show(){const p=PANEL(); if(p)p.style.display='block';}
+  function setStatus(name,count){show(); if(NAME()) NAME().textContent=name||'آفلاین'; if(PLAYERS()) PLAYERS().textContent=(count||0)+'/30'; window.gameServer.serverId=name; window.gameServer.players=count||0;}
+  function connect(){
+    const url=localStorage.getItem('PARKOUR_SERVER_URL') || '';
+    if(!url){setStatus('محلی',1); return;}
+    try{ ws=new WebSocket(url);
+      ws.onopen=()=>{retry=0; window.gameServer.connected=true; ws.send(JSON.stringify({type:'join',username:localStorage.getItem('currentUser')||'player'}));};
+      ws.onmessage=e=>{try{const m=JSON.parse(e.data); if(m.type==='room'){setStatus('Server '+m.roomId,m.players); window.gameServer.connected=true;} else if(m.type==='count'){setStatus('Server '+m.roomId,m.players);}}catch(_){}};
+      ws.onclose=()=>{window.gameServer.connected=false; if(retry<5){setTimeout(connect,Math.min(5000,700*(++retry)));}else setStatus('آفلاین',1);};
+      ws.onerror=()=>{};
+    }catch(_){setStatus('آفلاین',1);}
+  }
+  window.addEventListener('load',connect);
+})();
+</script>
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="window.__threeLoadFailed=true;var t=document.getElementById('toast');if(t){t.textContent='⚠️ موتور بازی بارگذاری نشد؛ اینترنت را بررسی کن.';t.style.display='block';}"></script>
+<script>
+/* JOYSTICK_PATCH_START */
+(function(){
+  const joystick=document.getElementById('joystick');
+  const stick=document.getElementById('stick');
+  const downBtn=document.getElementById('down');
+  let joyX=0, joyY=0, active=false, activeId=null;
+
+  window.mobileJoy=()=>({x:joyX,y:joyY});
+  window.carpetDownPressed=false;
+
+  function setJoy(x,y){
+    if(!joystick) return;
+    const r=joystick.getBoundingClientRect();
+    const cx=r.left+r.width/2, cy=r.top+r.height/2;
+    let dx=x-cx, dy=y-cy;
+    const max=Math.min(r.width,r.height)*0.34;
+    const len=Math.hypot(dx,dy);
+    if(len>max){dx=dx/len*max;dy=dy/len*max;}
+    joyX=dx/max; joyY=dy/max;
+    if(stick) stick.style.transform=`translate(${dx}px,${dy}px)`;
+  }
+  function resetJoy(){
+    active=false; activeId=null; joyX=0; joyY=0;
+    if(stick) stick.style.transform='translate(0px,0px)';
+  }
+
+  if(joystick){
+    joystick.addEventListener('pointerdown',e=>{
+      e.preventDefault();e.stopPropagation();
+      active=true;activeId=e.pointerId;
+      try{joystick.setPointerCapture(e.pointerId)}catch(_){}
+      setJoy(e.clientX,e.clientY);
+    },{passive:false});
+    joystick.addEventListener('pointermove',e=>{
+      if(!active || e.pointerId!==activeId)return;
+      e.preventDefault();e.stopPropagation();setJoy(e.clientX,e.clientY);
+    },{passive:false});
+    joystick.addEventListener('pointerup',e=>{
+      e.preventDefault();e.stopPropagation();resetJoy();
+    },{passive:false});
+    joystick.addEventListener('pointercancel',resetJoy,{passive:false});
+    joystick.addEventListener('touchstart',e=>{
+      e.preventDefault();e.stopPropagation();
+      const t=e.changedTouches[0];
+      active=true;activeId=t.identifier;setJoy(t.clientX,t.clientY);
+    },{passive:false});
+    joystick.addEventListener('touchmove',e=>{
+      if(!active)return;
+      e.preventDefault();e.stopPropagation();
+      const t=[...e.touches].find(x=>x.identifier===activeId)||e.touches[0];
+      if(t)setJoy(t.clientX,t.clientY);
+    },{passive:false});
+    joystick.addEventListener('touchend',e=>{
+      e.preventDefault();e.stopPropagation();resetJoy();
+    },{passive:false});
+    joystick.addEventListener('touchcancel',resetJoy,{passive:false});
+  }
+
+  window.updateCarpetDownButton=function(){
+    if(!downBtn)return;
+    downBtn.classList.toggle('active',!!carpet);
+  };
+
+  if(downBtn){
+    const downStart=e=>{
+      e.preventDefault();e.stopPropagation();
+      if(carpet) window.carpetDownPressed=true;
+    };
+    const downEnd=e=>{
+      if(e){e.preventDefault();e.stopPropagation();}
+      window.carpetDownPressed=false;
+    };
+    downBtn.addEventListener('pointerdown',downStart,{passive:false});
+    downBtn.addEventListener('pointerup',downEnd,{passive:false});
+    downBtn.addEventListener('pointercancel',downEnd,{passive:false});
+    downBtn.addEventListener('touchstart',downStart,{passive:false});
+    downBtn.addEventListener('touchend',downEnd,{passive:false});
+    downBtn.addEventListener('touchcancel',downEnd,{passive:false});
+  }
+})();
+</script>
+<script>
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x78c9ff);
+scene.fog=new THREE.Fog(0x78c9ff,42,210);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,500);
+let cameraFollowSpeed = 0.10;
+try { cameraFollowSpeed = Math.max(0.02, Math.min(0.20, Number(localStorage.getItem("parkour_camera_follow_speed") || 0.10))); } catch(_) {}
+camera.position.set(-3.05,3.25,1.11);
+camera.lookAt(0,1.1,0);
+let renderer;
+try{
+  renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+  renderer.setSize(innerWidth,innerHeight,false);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  if('outputColorSpace' in renderer) renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.08;
+  document.getElementById('game').appendChild(renderer.domElement);
+}catch(err){
+  const t=document.getElementById('toast');
+  if(t){t.textContent='⚠️ گرافیک سه‌بعدی روی این دستگاه فعال نشد.';t.style.display='block';}
+  throw err;
+}
+
+// MODERATE GRAPHICS: visual upgrades only; camera/input/game logic is untouched.
+try{
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+}
+catch(_){}
+try{ scene.add(new THREE.HemisphereLight(0xffffff,0x6b8ca8,1.25)); }catch(_){}
+try{
+  const sun=new THREE.DirectionalLight(0xffffff,1.0);
+  sun.position.set(10,20,10);
+  sun.castShadow=true;
+  sun.shadow.mapSize.set(768,768);
+  sun.shadow.camera.near=1; sun.shadow.camera.far=120;
+  sun.shadow.camera.left=-45; sun.shadow.camera.right=45;
+  sun.shadow.camera.top=45; sun.shadow.camera.bottom=-45;
+  sun.shadow.bias=-0.0005;
+  scene.add(sun);
+}catch(_){}
+
+// ===== High quality world =====
+function makeSky(){
+  const geo=new THREE.SphereGeometry(240,32,18);
+  const c=document.createElement('canvas'); c.width=16; c.height=512; const ctx=c.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,512);
+  g.addColorStop(0,'#163b75'); g.addColorStop(.34,'#3f8fce'); g.addColorStop(.72,'#a9dcff'); g.addColorStop(1,'#f4fbff');
+  ctx.fillStyle=g; ctx.fillRect(0,0,16,512);
+  const tex=new THREE.CanvasTexture(c); tex.colorSpace=THREE.SRGBColorSpace;
+  const m=new THREE.MeshBasicMaterial({map:tex,side:THREE.BackSide,depthWrite:false});
+  scene.add(new THREE.Mesh(geo,m));
+}
+function addCloud(x,y,z,scale=1){
+  const group=new THREE.Group();
+  const cloudMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,metalness:0,transparent:true,opacity:.86});
+  [[0,0,0,1.8],[1.7,.2,.1,1.25],[-1.6,.1,.1,1.35],[.5,.55,.1,1.15]].forEach(a=>{const q=new THREE.Mesh(new THREE.SphereGeometry(a[3],14,10),cloudMat);q.position.set(a[0],a[1],a[2]);group.add(q);});
+  group.position.set(x,y,z);group.scale.setScalar(scale);scene.add(group); return group;
+}
+function addMountain(x,z,h,w,color){
+  const g=new THREE.ConeGeometry(w,h,7); const m=new THREE.MeshStandardMaterial({color,roughness:1}); const o=new THREE.Mesh(g,m); o.position.set(x,h/2-2,z); o.castShadow=true; o.receiveShadow=true; scene.add(o);
+}
+function addTree(x,y,z,s=1){
+  const g=new THREE.Group(); const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.13*s,.2*s,1.5*s,8),new THREE.MeshStandardMaterial({color:0x70452c,roughness:1})); trunk.position.y=.75*s;
+  const leaves=new THREE.Mesh(new THREE.ConeGeometry(.8*s,2.1*s,8),new THREE.MeshStandardMaterial({color:0x1d8c4b,roughness:.95})); leaves.position.y=2*s; leaves.castShadow=true; g.add(trunk,leaves); g.position.set(x,y,z); scene.add(g);
+}
+
+const player=new THREE.Group();
+player.name='PLAYER_CHARACTER_REAL';
+player.visible=true;
+player.frustumCulled=false;
+player.renderOrder=100;
+
+// V5.8: مدل واقعی سه‌بعدی؛ کاراکتر با MeshBasic ساخته شده تا نورپردازی/سایه باعث ناپدید شدنش نشود.
+const cBlue=new THREE.MeshBasicMaterial({color:0x1769ff,side:THREE.DoubleSide});
+const cDark=new THREE.MeshBasicMaterial({color:0x102a68,side:THREE.DoubleSide});
+const cCyan=new THREE.MeshBasicMaterial({color:0x19f2ff,side:THREE.DoubleSide});
+const cSkin=new THREE.MeshBasicMaterial({color:0xffb07c,side:THREE.DoubleSide});
+function charPart(geo,mat,x,y,z){
+  const m=new THREE.Mesh(geo,mat);
+  m.position.set(x,y,z);
+  m.visible=true;
+  m.frustumCulled=false;
+  m.renderOrder=101;
+  player.add(m);
+  return m;
+}
+const legL=charPart(new THREE.BoxGeometry(.24,.62,.26),cDark,-.18,.31,0);
+const legR=charPart(new THREE.BoxGeometry(.24,.62,.26),cDark,.18,.31,0);
+charPart(new THREE.BoxGeometry(.34,.18,.46),cDark,-.18,.09,.05);
+charPart(new THREE.BoxGeometry(.34,.18,.46),cDark,.18,.09,.05);
+const body=charPart(new THREE.BoxGeometry(.76,1.02,.56),cBlue,0,.82,0);
+charPart(new THREE.BoxGeometry(.34,.24,.05),cCyan,0,.86,.30);
+const head=charPart(new THREE.SphereGeometry(.36,20,14),cSkin,0,1.55,0);
+charPart(new THREE.BoxGeometry(.46,.14,.055),cCyan,0,1.58,.34);
+const armL=charPart(new THREE.BoxGeometry(.20,.58,.22),cBlue,-.49,.82,0);
+const armR=charPart(new THREE.BoxGeometry(.20,.58,.22),cBlue,.49,.82,0);
+charPart(new THREE.SphereGeometry(.11,10,8),cSkin,-.49,.51,0);
+charPart(new THREE.SphereGeometry(.11,10,8),cSkin,.49,.51,0);
+charPart(new THREE.BoxGeometry(.48,.56,.16),cDark,0,.82,-.34);
+const core=charPart(new THREE.SphereGeometry(.12,14,10),cCyan,0,.88,.31);
+player.scale.setScalar(1.15);
+player.position.set(0,.5,0);
+player.rotation.set(0,0,0);
+scene.add(player);
+// اطمینان نهایی: هیچ کدی نباید نمایش کاراکتر واقعی را خاموش کند.
+player.traverse(o=>{if(o.isMesh){o.visible=true;o.frustumCulled=false;}});
+
+// V5.8: فقط کاراکتر واقعی Three.js — بدون HTML و بدون Sprite.
+// خود مدل سه‌بعدی در مختصات دنیای بازی حرکت می‌کند و عمداً مخفی نمی‌شود.
+let worldCharacterSprite=null;
+player.visible=true;
+player.scale.setScalar(1.00);
+player.traverse(o=>{
+  if(o.isMesh){
+    o.visible=true;
+    o.frustumCulled=false;
+    o.renderOrder=9999;
+    if(o.material){ o.material.depthTest=false; o.material.depthWrite=false; }
+  }
+});
+// یک حلقه‌ی نوری سه‌بعدی زیر پای بازیکن برای اینکه جای کاراکتر همیشه واضح باشد.
+try{
+  
+}catch(_){}
+
+
+// ===== Skin system / portal =====
+let selectedSkinId='samy';
+const skinPrices={samy:250,alex:500,steve:500,shadow:750,neon:1000,galaxy:1500,lava:2000,ice:2500,cyber:3000,royal:4000,dragon:5000};
+const skinNames={samy:'Samy — Roblox',alex:'Alex — Minecraft',steve:'Steve — Minecraft',shadow:'Shadow',neon:'Neon',galaxy:'Galaxy',lava:'Lava',ice:'Ice',cyber:'Cyber — ویژه فصل ۳',royal:'Royal — ویژه فصل ۳',dragon:'Dragon — ویژه فصل ۳'};
+let ownedSkins={};
+function loadOwnedSkins(){try{if(window.currentAccount&&window.currentAccount.ownedSkins)ownedSkins={...window.currentAccount.ownedSkins};else{const raw=localStorage.getItem('parkour_owned_skins_v1');if(raw)ownedSkins=JSON.parse(raw)||{};}}catch(_){ownedSkins={};}}
+function saveOwnedSkins(){try{localStorage.setItem('parkour_owned_skins_v1',JSON.stringify(ownedSkins));}catch(_){} if(window.currentAccount)window.currentAccount.ownedSkins={...ownedSkins};}
+let skinWorldActive=false;
+let skinWorldDecor=[];
+let skinWorldTarget=null;
+let skinWorldConfirmTarget=null;
+const skinPresets={
+  samy:{body:0x1769ff,dark:0x102a68,accent:0x19f2ff,skin:0xffb07c,scale:1.00},
+  alex:{body:0x35a853,dark:0x4b2b1b,accent:0x5aa7ff,skin:0xc58b63,scale:1.00},
+  steve:{body:0x3b6fc4,dark:0x5a371e,accent:0x1f4d9a,skin:0x9b6a48,scale:1.00},
+  shadow:{body:0x171717,dark:0x090909,accent:0x6d39ff,skin:0x555555,scale:1.03},
+  neon:{body:0xff21c7,dark:0x24104f,accent:0x19f2ff,skin:0xffb07c,scale:1.02},
+  galaxy:{body:0x5d36c9,dark:0x17102f,accent:0xff5ee7,skin:0xb98cff,scale:1.03},
+  lava:{body:0xb92c19,dark:0x32110a,accent:0xffd21f,skin:0xff9b62,scale:1.02},
+  ice:{body:0x7bdcff,dark:0x28517a,accent:0xffffff,skin:0xc8efff,scale:1.02},
+  cyber:{body:0x111827,dark:0x05070c,accent:0x22d3ee,skin:0x9bd5ff,scale:1.05},
+  royal:{body:0x7c3aed,dark:0x25104d,accent:0xfacc15,skin:0xf2c6a0,scale:1.05},
+  dragon:{body:0x991b1b,dark:0x3f0b0b,accent:0xf97316,skin:0x7f1d1d,scale:1.06}
+};
+function ensureDetailedPlayerSkinParts(){
+  // High-detail player skin rig. Physics/camera variables are untouched.
+  if(!player) return;
+  if(player.userData.hdSkinRig){
+    rebuildDetailedPlayerSkin(selectedSkinId||'samy');
+    return;
+  }
+  // Hide the old low-detail visual meshes, but keep their limb groups for animation.
+  player.children.forEach(o=>{
+    if(o.isMesh) o.visible=false;
+  });
+  const rig=new THREE.Group();
+  rig.name='HD_SKIN_RIG';
+  rig.position.set(0,0,0);
+  rig.rotation.y=0;
+  player.add(rig);
+  player.userData.hdSkinRig=rig;
+  rebuildDetailedPlayerSkin(selectedSkinId||'samy');
+}
+function rebuildDetailedPlayerSkin(id){
+  if(!player || !player.userData.hdSkinRig) return;
+  const rig=player.userData.hdSkinRig;
+  while(rig.children.length) rig.remove(rig.children[0]);
+  const p=skinPresets[id]||skinPresets.samy;
+  const mat=(c,r=.42,m=.08,e=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m,emissive:e?c:0,emissiveIntensity:e});
+  const skin=mat(p.skin,.48,.03), cloth=mat(p.body,.34,.10), dark=mat(p.dark,.40,.12), accent=mat(p.accent,.25,.22,.12);
+  const shoe=mat(p.dark,.28,.16), black=mat(0x090b12,.20,.18), white=mat(0xf8fbff,.28,.04);
+  const add=(geo,m,x,y,z,parent=rig)=>{const q=new THREE.Mesh(geo,m);q.position.set(x,y,z);q.castShadow=true;q.receiveShadow=true;q.frustumCulled=false;parent.add(q);return q;};
+  const addLine=(x,y,z,sx,sy,sz,m,parent=rig)=>add(new THREE.BoxGeometry(sx,sy,sz),m,x,y,z,parent);
+
+  // High-detail solid torso, matching the shop mannequin proportions.
+  add(new THREE.BoxGeometry(.76,1.0,.50,6,6,6),cloth,0,1.42,0);
+  addLine(0,1.48,.265,.42,.36,.025,accent);
+  addLine(0,.99,0,.72,.10,.53,dark);
+  addLine(0,1.0,.29,.12,.12,.04,accent);
+  add(new THREE.CylinderGeometry(.13,.14,.18,24),skin,0,1.88,0);
+  // Chest/shoulder detail and clothing seams.
+  addLine(-.36,1.74,.265,.12,.16,.035,accent);
+  addLine(.36,1.74,.265,.12,.16,.035,accent);
+  addLine(0,1.10,.273,.48,.035,.018,accent);
+  addLine(-.36,1.40,.27,.035,.56,.018,accent);
+  addLine(.36,1.40,.27,.035,.56,.018,accent);
+
+  // High-detail head and face, facing +Z like the shop model.
+  add(new THREE.BoxGeometry(.66,.66,.66,6,6,6),skin,0,2.30,0);
+  add(new THREE.BoxGeometry(.70,.20,.70,5,3,5),dark,0,2.67,0);
+  add(new THREE.BoxGeometry(.68,.52,.12,4,4,2),dark,0,2.42,.34);
+  // Hair fringe layers for a less blocky silhouette.
+  addLine(-.20,2.57,-.315,.25,.11,.08,dark);
+  addLine(0,2.60,-.33,.22,.12,.08,dark);
+  addLine(.20,2.57,-.315,.25,.11,.08,dark);
+  // Ears, eyes, pupils, brows, nose and mouth.
+  add(new THREE.SphereGeometry(.075,20,14),skin,-.335,2.34,0);
+  add(new THREE.SphereGeometry(.075,20,14),skin,.335,2.34,0);
+  add(new THREE.SphereGeometry(.066,20,14),white,-.13,2.35,.333);
+  add(new THREE.SphereGeometry(.066,20,14),white,.13,2.35,.333);
+  add(new THREE.SphereGeometry(.027,16,12),black,-.13,2.35,.387);
+  add(new THREE.SphereGeometry(.027,16,12),black,.13,2.35,.387);
+  addLine(-.13,2.43,.342,.15,.025,.018,dark);
+  addLine(.13,2.43,.342,.15,.025,.018,dark);
+  add(new THREE.SphereGeometry(.045,16,12),skin,0,2.27,.352);
+  addLine(0,2.18,.345,.18,.035,.025,accent);
+  // tiny chin highlight gives the face depth without changing orientation.
+  addLine(0,2.12,.325,.11,.025,.018,skin);
+
+  // Animated arms with extra cuffs, hands and shoulder caps.
+  const armLrig=new THREE.Group(); armLrig.position.set(-.51,1.43,0); rig.add(armLrig);
+  const armRrig=new THREE.Group(); armRrig.position.set(.51,1.43,0); rig.add(armRrig);
+  const makeArm=(g,side)=>{
+    add(new THREE.BoxGeometry(.22,.72,.24,5,5,5),cloth,0,0,0,g);
+    add(new THREE.SphereGeometry(.145,18,12),accent,0,.34,0,g);
+    add(new THREE.BoxGeometry(.23,.10,.25,3,3,3),accent,0,-.37,0,g);
+    add(new THREE.SphereGeometry(.13,18,14),skin,0,-.47,0,g);
+    add(new THREE.BoxGeometry(.10,.055,.12,3,3,3),white,side*.025,-.51,.115,g);
+  };
+  makeArm(armLrig,-1); makeArm(armRrig,1);
+
+  // Animated legs with layered knees and premium shoes.
+  const legLrig=new THREE.Group(); legLrig.position.set(-.20,.59,0); rig.add(legLrig);
+  const legRrig=new THREE.Group(); legRrig.position.set(.20,.59,0); rig.add(legRrig);
+  const makeLeg=(g)=>{
+    add(new THREE.BoxGeometry(.27,.78,.30,5,5,5),dark,0,0,0,g);
+    add(new THREE.BoxGeometry(.28,.12,.31,3,3,3),accent,0,-.03,.155,g);
+    add(new THREE.BoxGeometry(.34,.20,.48,4,4,4),shoe,0,-.45,.08,g);
+    add(new THREE.BoxGeometry(.36,.055,.50,3,3,3),accent,0,-.545,.08,g);
+    addLine(0,-.40,.325,.22,.035,.025,white,g);
+  };
+  makeLeg(legLrig); makeLeg(legRrig);
+
+  // Premium silhouette details shared with the shop style.
+  add(new THREE.SphereGeometry(.16,20,14),accent,-.40,1.80,0);
+  add(new THREE.SphereGeometry(.16,20,14),accent,.40,1.80,0);
+  add(new THREE.BoxGeometry(.50,.28,.045,4,4,2),accent,0,1.55,.285);
+  add(new THREE.TorusGeometry(.14,.028,12,28),accent,0,1.89,0);
+  addLine(-.405,1.42,.27,.055,.62,.055,accent);
+  addLine(.405,1.42,.27,.055,.62,.055,accent);
+  addLine(-.20,.23,.31,.24,.055,.30,accent);
+  addLine(.20,.23,.31,.24,.055,.30,accent);
+
+  // Distinctive accessories for each skin, upgraded with denser geometry.
+  if(id==='shadow'){addLine(0,2.34,.37,.58,.07,.045,accent);add(new THREE.TorusGeometry(.30,.018,10,32),accent,0,2.34,.34);}
+  if(id==='neon'){const q=add(new THREE.TorusGeometry(.34,.025,12,32),accent,0,1.45,.29);q.rotation.x=Math.PI/2;}
+  if(id==='galaxy'){add(new THREE.OctahedronGeometry(.11,2),accent,0,1.52,.34);add(new THREE.SphereGeometry(.06,16,12),white,.27,1.57,.30);}
+  if(id==='lava'){add(new THREE.ConeGeometry(.07,.22,10),accent,-.27,2.72,0);add(new THREE.ConeGeometry(.07,.22,10),accent,.27,2.72,0);}
+  if(id==='ice'){add(new THREE.ConeGeometry(.09,.26,10),accent,-.28,2.72,0);add(new THREE.ConeGeometry(.09,.26,10),accent,.28,2.72,0);}
+  if(id==='cyber'){addLine(0,2.34,.37,.52,.09,.045,accent);add(new THREE.TorusGeometry(.10,.012,8,24),accent,-.27,1.52,.30);add(new THREE.TorusGeometry(.10,.012,8,24),accent,.27,1.52,.30);}
+  if(id==='royal'){add(new THREE.ConeGeometry(.22,.28,10),accent,0,2.96,0);add(new THREE.TorusGeometry(.23,.025,10,32),accent,0,2.84,0);}
+  if(id==='dragon'){add(new THREE.ConeGeometry(.11,.28,10),accent,-.28,2.93,0);add(new THREE.ConeGeometry(.11,.28,10),accent,.28,2.93,0);add(new THREE.TorusGeometry(.18,.018,10,28),accent,0,1.50,.31);}
+
+  player.userData.hdSkinMaterials={body:cloth,dark,accent,skin};
+  player.userData.hdSkinRigParts={armLrig,armRrig,legLrig,legRrig};
+}
+function syncDetailedSkinAnimation(){
+  const parts=player&&player.userData.hdSkinRigParts;
+  if(!parts) return;
+  // Mirror the original animated limb rotations exactly; no camera/gameplay changes.
+  if(typeof armL!=='undefined' && parts.armLrig){
+    parts.armLrig.rotation.x=armL.rotation.x;
+    parts.armLrig.rotation.y=armL.rotation.y;
+    parts.armLrig.rotation.z=-0.07+armL.rotation.x*0.0;
+  }
+  if(typeof armR!=='undefined' && parts.armRrig){
+    parts.armRrig.rotation.x=armR.rotation.x;
+    parts.armRrig.rotation.y=armR.rotation.y;
+    parts.armRrig.rotation.z=0.07+armR.rotation.x*0.0;
+  }
+  if(typeof legL!=='undefined' && parts.legLrig){
+    parts.legLrig.rotation.x=legL.rotation.x;
+    parts.legLrig.rotation.y=legL.rotation.y;
+    parts.legLrig.rotation.z=0;
+  }
+  if(typeof legR!=='undefined' && parts.legRrig){
+    parts.legRrig.rotation.x=legR.rotation.x;
+    parts.legRrig.rotation.y=legR.rotation.y;
+    parts.legRrig.rotation.z=0;
+  }
+}
+function applySkin(id){
+  if(!skinPresets[id]) id='samy';
+  selectedSkinId=id;
+  const p=skinPresets[id];
+  // The old body remains the physics/animation model; these materials are updated too.
+  if(typeof cBlue!=='undefined')cBlue.color.setHex(p.body);
+  if(typeof cDark!=='undefined')cDark.color.setHex(p.dark);
+  if(typeof cCyan!=='undefined')cCyan.color.setHex(p.accent);
+  if(typeof cSkin!=='undefined')cSkin.color.setHex(p.skin);
+  if(typeof ensureDetailedPlayerSkinParts==='function')ensureDetailedPlayerSkinParts();
+  if(typeof rebuildDetailedPlayerSkin==='function')rebuildDetailedPlayerSkin(id);
+  if(typeof player!=='undefined')player.scale.setScalar(p.scale);
+  document.querySelectorAll('.skinOption').forEach(b=>b.classList.toggle('selected',b.dataset.skin===id));
+  if(window.currentAccount&&window.saveCurrentAccount)window.saveCurrentAccount();
+}
+function openSkinPortal(){ enterSkinWorld(); }
+function closeSkinPortal(){const e=document.getElementById('skinPortal');if(e)e.style.display='none';}
+function makeSkinPortal(x,y,z){
+  const g=new THREE.Group();g.name='SKIN_PORTAL';
+  const outer=new THREE.Mesh(new THREE.TorusGeometry(1.15,.16,16,48),new THREE.MeshStandardMaterial({color:0x8d4dff,emissive:0x5b20ff,emissiveIntensity:1.4,metalness:.35,roughness:.25}));
+  outer.rotation.y=Math.PI/2;
+  const inner=new THREE.Mesh(new THREE.TorusGeometry(.82,.07,12,40),new THREE.MeshStandardMaterial({color:0x25e8ff,emissive:0x11aaff,emissiveIntensity:1.7,metalness:.2,roughness:.2}));
+  inner.rotation.y=Math.PI/2;
+  const core=new THREE.Mesh(new THREE.CircleGeometry(.78,48),new THREE.MeshBasicMaterial({color:0x6b2cff,transparent:true,opacity:.24,side:THREE.DoubleSide,depthWrite:false}));
+  core.rotation.y=Math.PI/2;
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.25,.12,32),new THREE.MeshStandardMaterial({color:0x20243d,emissive:0x2b1a5d,emissiveIntensity:.5,metalness:.4,roughness:.3}));
+  base.position.y=-1.1;
+  g.add(outer,inner,core,base);g.position.set(x,y+1.1,z);g.userData.outer=outer;g.userData.inner=inner;g.userData.core=core;scene.add(g);stageDecor.push(g);return g;
+}
+let skinPortal=null;
+let skinPortalOpen=false;
+function portalUpdate(){
+  if(!skinPortal)return;
+  const t=performance.now()*0.002;
+  if(skinPortal.userData.outer)skinPortal.userData.outer.rotation.z=t;
+  if(skinPortal.userData.inner)skinPortal.userData.inner.rotation.z=-t*1.35;
+  if(skinPortal.userData.core)skinPortal.userData.core.material.opacity=.18+.10*(Math.sin(t*2)+1);
+  if(skinWorldActive)return;
+  const near=player.position.distanceTo(skinPortal.position)<1.85;
+  const prompt=document.getElementById('skinPortalPrompt');
+  if(prompt)prompt.style.display=near?'block':'none';
+  if(near){
+    if(!portalUpdate.timer)portalUpdate.timer=setTimeout(()=>{if(skinPortal&&player.position.distanceTo(skinPortal.position)<1.85){enterSkinWorld();}portalUpdate.timer=null;},350);
+  }
+}
+function clearSkinWorld(){
+  skinWorldDecor.forEach(o=>scene.remove(o));
+  skinWorldDecor=[];
+}
+function makeLabel(text,sub=''){
+  const c=document.createElement('canvas');c.width=512;c.height=128;const ctx=c.getContext('2d');
+  ctx.fillStyle='rgba(12,15,30,.88)';ctx.roundRect(8,8,496,112,20);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 34px sans-serif';ctx.textAlign='center';ctx.fillText(text,256,55);
+  ctx.fillStyle='#ffd75a';ctx.font='bold 25px sans-serif';ctx.fillText(sub,256,94);
+  const tx=new THREE.CanvasTexture(c);tx.needsUpdate=true;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(2.5,.63),new THREE.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false}));
+  return m;
+}
+function createSkinMannequin(id,x,z){
+  const g=new THREE.Group();
+  const p=skinPresets[id];
+  const mat=(c,r=.48,m=.06,e=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m,emissive:e?c:0,emissiveIntensity:e});
+  const skin=mat(p.skin,.58,.02);
+  const cloth=mat(p.body,.42,.08);
+  const dark=mat(p.dark,.5,.08);
+  const accent=mat(p.accent,.32,.18,.18);
+  const shoe=mat(p.dark,.38,.12);
+  const white=mat(0xf5f7ff,.35,.03);
+  const black=mat(0x10121a,.25,.12);
+  const hair=dark;
+
+  // Detailed head and face
+  const head=new THREE.Mesh(new THREE.BoxGeometry(.66,.66,.66,3,3,3),skin);head.position.y=2.30;g.add(head);
+  const hairTop=new THREE.Mesh(new THREE.BoxGeometry(.70,.20,.70,2,2,2),hair);hairTop.position.set(0,2.67,0);g.add(hairTop);
+  const hairBack=new THREE.Mesh(new THREE.BoxGeometry(.68,.52,.12),hair);hairBack.position.set(0,2.42,-.34);g.add(hairBack);
+  const eyeL=new THREE.Mesh(new THREE.SphereGeometry(.055,12,8),black);eyeL.position.set(-.13,2.34,.335);g.add(eyeL);
+  const eyeR=eyeL.clone();eyeR.position.x=.13;g.add(eyeR);
+  const mouth=new THREE.Mesh(new THREE.BoxGeometry(.18,.035,.025),accent);mouth.position.set(0,2.18,.335);g.add(mouth);
+
+  // Neck + torso + shirt details
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.13,.14,.18,16),skin);neck.position.y=1.88;g.add(neck);
+  const torso=new THREE.Mesh(new THREE.BoxGeometry(.76,1.0,.50,3,3,3),cloth);torso.position.y=1.42;g.add(torso);
+  const shirtFront=new THREE.Mesh(new THREE.BoxGeometry(.42,.36,.025,2,2,1),accent);shirtFront.position.set(0,1.48,.265);g.add(shirtFront);
+  const belt=new THREE.Mesh(new THREE.BoxGeometry(.72,.10,.53),dark);belt.position.y=.99;g.add(belt);
+  const buckle=new THREE.Mesh(new THREE.BoxGeometry(.12,.12,.04),accent);buckle.position.set(0,1.0,.29);g.add(buckle);
+
+  // Arms, hands and cuffs
+  const armL=new THREE.Mesh(new THREE.BoxGeometry(.22,.72,.24,2,2,2),cloth);armL.position.set(-.51,1.43,0);armL.rotation.z=-.07;g.add(armL);
+  const armR=armL.clone();armR.position.x=.51;armR.rotation.z=.07;g.add(armR);
+  const cuffL=new THREE.Mesh(new THREE.BoxGeometry(.23,.10,.25),accent);cuffL.position.set(-.54,1.06,0);g.add(cuffL);
+  const cuffR=cuffL.clone();cuffR.position.x=.54;g.add(cuffR);
+  const handL=new THREE.Mesh(new THREE.SphereGeometry(.13,14,10),skin);handL.position.set(-.54,.96,0);g.add(handL);
+  const handR=handL.clone();handR.position.x=.54;g.add(handR);
+
+  // Pants, knees and shoes
+  const legL=new THREE.Mesh(new THREE.BoxGeometry(.27,.78,.30,2,2,2),dark);legL.position.set(-.20,.59,0);g.add(legL);
+  const legR=legL.clone();legR.position.x=.20;g.add(legR);
+  const kneeL=new THREE.Mesh(new THREE.BoxGeometry(.28,.12,.31),accent);kneeL.position.set(-.20,.56,.155);g.add(kneeL);
+  const kneeR=kneeL.clone();kneeR.position.x=.20;g.add(kneeR);
+  const shoeL=new THREE.Mesh(new THREE.BoxGeometry(.34,.20,.48,2,2,2),shoe);shoeL.position.set(-.20,.14,.08);g.add(shoeL);
+  const shoeR=shoeL.clone();shoeR.position.x=.20;g.add(shoeR);
+  const soleL=new THREE.Mesh(new THREE.BoxGeometry(.36,.055,.50),accent);soleL.position.set(-.20,.045,.08);g.add(soleL);
+  const soleR=soleL.clone();soleR.position.x=.20;g.add(soleR);
+
+  // Shoulder/side accents for a more finished 3D appearance
+  const shoulderL=new THREE.Mesh(new THREE.SphereGeometry(.16,14,10),accent);shoulderL.position.set(-.40,1.80,0);g.add(shoulderL);
+  const shoulderR=shoulderL.clone();shoulderR.position.x=.40;g.add(shoulderR);
+
+  // Extra depth/details so every display mannequin reads as a complete solid character.
+  const chestPlate=new THREE.Mesh(new THREE.BoxGeometry(.50,.28,.045,2,2,1),accent);chestPlate.position.set(0,1.55,.285);g.add(chestPlate);
+  const neckRing=new THREE.Mesh(new THREE.TorusGeometry(.14,.028,8,20),accent);neckRing.rotation.x=Math.PI/2;neckRing.position.set(0,1.89,0);g.add(neckRing);
+  const eyeGlowL=new THREE.Mesh(new THREE.SphereGeometry(.045,10,8),accent);eyeGlowL.position.set(-.13,2.34,.365);g.add(eyeGlowL);
+  const eyeGlowR=eyeGlowL.clone();eyeGlowR.position.x=.13;g.add(eyeGlowR);
+  const sidePanelL=new THREE.Mesh(new THREE.BoxGeometry(.055,.62,.055),accent);sidePanelL.position.set(-.405,1.42,.27);g.add(sidePanelL);
+  const sidePanelR=sidePanelL.clone();sidePanelR.position.x=.405;g.add(sidePanelR);
+  const shoeDetailL=new THREE.Mesh(new THREE.BoxGeometry(.24,.055,.30),accent);shoeDetailL.position.set(-.20,.23,.31);g.add(shoeDetailL);
+  const shoeDetailR=shoeDetailL.clone();shoeDetailR.position.x=.20;g.add(shoeDetailR);
+  // Skin-specific silhouette accessories.
+  if(id==='shadow'){ const v=new THREE.Mesh(new THREE.BoxGeometry(.58,.07,.045),accent);v.position.set(0,2.34,.37);g.add(v); }
+  if(id==='neon'){ const r=new THREE.Mesh(new THREE.TorusGeometry(.34,.025,8,24),accent);r.rotation.x=Math.PI/2;r.position.set(0,1.45,.29);g.add(r); }
+  if(id==='galaxy'){ const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.11),accent);gem.position.set(0,1.52,.34);g.add(gem); }
+  if(id==='lava'){ const spikeL=new THREE.Mesh(new THREE.ConeGeometry(.07,.22,6),accent);spikeL.position.set(-.27,2.72,0);g.add(spikeL);const spikeR=spikeL.clone();spikeR.position.x=.27;g.add(spikeR); }
+  if(id==='ice'){ const spikeL=new THREE.Mesh(new THREE.ConeGeometry(.09,.26,6),accent);spikeL.position.set(-.28,2.72,0);g.add(spikeL);const spikeR=spikeL.clone();spikeR.position.x=.28;g.add(spikeR); }
+  if(id==='cyber'){ const visor=new THREE.Mesh(new THREE.BoxGeometry(.52,.09,.045),accent);visor.position.set(0,2.34,.37);g.add(visor); }
+  if(id==='royal'){ const crown=new THREE.Mesh(new THREE.ConeGeometry(.22,.28,6),accent);crown.position.set(0,2.96,0);g.add(crown); }
+  if(id==='dragon'){ const hornL=new THREE.Mesh(new THREE.ConeGeometry(.11,.28,6),accent);hornL.position.set(-.28,2.93,0);g.add(hornL);const hornR=hornL.clone();hornR.position.x=.28;g.add(hornR); }
+
+  // Premium display pedestal and glow ring
+  const ped=new THREE.Mesh(new THREE.CylinderGeometry(1.0,1.08,.25,48),new THREE.MeshStandardMaterial({color:0x292d4a,metalness:.45,roughness:.24,emissive:0x11152d,emissiveIntensity:.45}));ped.position.y=.12;g.add(ped);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.85,.065,14,48),new THREE.MeshStandardMaterial({color:p.accent,emissive:p.accent,emissiveIntensity:.85,metalness:.25,roughness:.22}));ring.rotation.x=Math.PI/2;ring.position.y=.27;g.add(ring);
+
+  // Floating name/price label
+  const label=makeLabel(skinNames[id],'🪙 '+skinPrices[id]+' سکه');label.position.set(0,3.35,0);g.add(label);
+  g.position.set(x,0,z);g.userData.skinId=id;g.userData.label=label;
+  g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;}});
+  scene.add(g);skinWorldDecor.push(g);return g;
+}
+function buildSkinWorld(){
+  clearWorld();clearSkinWorld();skinPortal=null;window.stageFinishPoint=null;
+  const floor=box(0,-.3,-16,42,.6,54,0x171b35);skinWorldDecor.push(floor);
+  const back=new THREE.Mesh(new THREE.BoxGeometry(42,12,.5),new THREE.MeshStandardMaterial({color:0x24204b,emissive:0x100b2c,emissiveIntensity:.5}));back.position.set(0,5,-43);scene.add(back);skinWorldDecor.push(back);
+  const arch=new THREE.Mesh(new THREE.BoxGeometry(16,5,.7),new THREE.MeshStandardMaterial({color:0x5a35a6,emissive:0x2c1360,emissiveIntensity:.7}));arch.position.set(0,2.5,-42.5);scene.add(arch);skinWorldDecor.push(arch);
+  const title=makeLabel('SKIN WORLD','فروشگاه اسکین');title.scale.set(3.5,1.4,1);title.position.set(0,6.8,-41.8);scene.add(title);skinWorldDecor.push(title);
+  const ids=Object.keys(skinPresets);ids.forEach((id,i)=>{const row=i<4?0:1,col=i%4;const x=(col-1.5)*8.5;const z=-8-row*16;createSkinMannequin(id,x,z);});
+  const exitPortal=makeSkinPortal(0,.5,3);exitPortal.name='SKIN_WORLD_EXIT';skinWorldDecor.push(exitPortal);window.skinWorldExitPortal=exitPortal;
+  player.position.set(0,0.5,8);vy=0;onGround=true;camYaw=FIXED_CAM_YAW;camPitch=.22;camDistance=7;
+  player.visible=true;player.traverse(o=>{if(o.isMesh)o.visible=true;});
+  document.getElementById('skinWorldHud').style.display='block';document.getElementById('skinWorldBalance').style.display='block';updateSkinWorldBalance();
+}
+function updateSkinWorldBalance(){const e=document.getElementById('skinWorldCoins');if(e)e.textContent=String(Number(coinCount)||0);}
+function enterSkinWorld(){
+  loadOwnedSkins();
+  if(skinWorldActive)return;skinWorldActive=true;skinPortalOpen=true;
+  document.getElementById('skinPortalPrompt').style.display='none';
+  document.getElementById('buttons').style.display='none';document.getElementById('hud').style.display='none';document.getElementById('stage').style.display='none';document.getElementById('cameraHint').style.display='none';document.getElementById('worldInfo').style.display='none';
+  buildSkinWorld();showToast('🌀 به دنیای اسکین‌ها وارد شدی!');
+}
+function exitSkinWorld(){
+  if(!skinWorldActive)return;skinWorldActive=false;skinPortalOpen=false;clearSkinWorld();
+  document.getElementById('skinWorldHud').style.display='none';document.getElementById('buttons').style.display='flex';document.getElementById('hud').style.display='flex';document.getElementById('stage').style.display='block';document.getElementById('cameraHint').style.display='block';document.getElementById('worldInfo').style.display='block';
+  buildStage(stage);showToast('↩️ به مرحله '+stage+' برگشتی');
+}
+function openSkinPurchase(id){
+  if((id==='cyber'||id==='royal'||id==='dragon') && unlockedSeason<3){showToast('🔒 این اسکین‌ها بعد از باز شدن فصل ۳ در دسترس هستند.');return;}
+  skinWorldConfirmTarget=id;const price=skinPrices[id];
+  document.getElementById('skinWorldConfirmTitle').textContent='🛒 خرید '+skinNames[id];
+  document.getElementById('skinWorldConfirmText').textContent='قیمت این اسکین '+price+' سکه است. می‌خواهی بخری؟';
+  document.getElementById('skinWorldConfirm').style.display='flex';
+}
+function closeSkinPurchase(){document.getElementById('skinWorldConfirm').style.display='none';skinWorldConfirmTarget=null;}
+function buySkinWorldTarget(){
+  const id=skinWorldConfirmTarget;if(!id)return;const price=skinPrices[id];
+  if(ownedSkins[id]){applySkin(id);closeSkinPurchase();showToast('✅ این اسکین را داری و فعال شد!');return;}
+  if(coinCount<price){closeSkinPurchase();showToast('🪙 سکه کافی نداری! '+price+' سکه لازم است.');return;}
+  coinCount-=price;ownedSkins[id]=true;saveOwnedSkins();applySkin(id);syncShopCoins();updateSkinWorldBalance();if(window.saveCurrentAccount)window.saveCurrentAccount();closeSkinPurchase();showToast('🎉 '+skinNames[id]+' خریداری شد!');
+}
+function updateSkinWorldInteraction(){
+  if(!skinWorldActive)return;
+  const exit=window.skinWorldExitPortal;
+  if(exit){const d=player.position.distanceTo(exit.position);if(d<1.8){exitSkinWorld();return;}}
+  let best=null,bestD=2.35;
+  skinWorldDecor.forEach(o=>{if(o&&o.userData&&o.userData.skinId){const d=player.position.distanceTo(o.position);if(d<bestD){best=o;bestD=d;}}});
+  const prompt=document.getElementById('skinWorldPrompt');
+  if(best){skinWorldTarget=best.userData.skinId;document.getElementById('skinWorldPromptName').textContent=skinNames[skinWorldTarget];document.getElementById('skinWorldPromptPrice').textContent=ownedSkins[skinWorldTarget]?'✅ خریداری شده':'🪙 '+skinPrices[skinWorldTarget]+' سکه';prompt.style.display='block';}
+  else{skinWorldTarget=null;prompt.style.display='none';}
+}
+let playerShadow=null;
+const PLAYER_FOOT_OFFSET=0;
+let walkPhase=0;
+
+const platforms=[], coins=[], enemies=[], stageDecor=[];
+const SEASON_COUNT=3, STAGES_PER_SEASON_BY_SEASON=[50,100,200]; const STAGES_PER_SEASON=50; let season=1, unlockedSeason=1; let stage=1, coinCount=0, carpet=false, carpetOwned=false, killAllOwned=false, vy=0, onGround=false, checkpoint=new THREE.Vector3(0,0.5,0), victoryRewardGiven=false, finishTransition=false;
+const keys={w:false,a:false,s:false,d:false};
+window.mobileJoy=window.mobileJoy||(()=>({x:0,y:0}));
+window.carpetDownPressed=false;
+window.updateCarpetDownButton=window.updateCarpetDownButton||(()=>{});
+
+// کنترل دستی دوربین با کشیدن صفحه
+const FIXED_CAM_YAW=70*Math.PI/180;
+let camYaw = FIXED_CAM_YAW;
+let camPitch = 0.30;
+let camDistance = 3.25;
+let cameraViewMode = 'third'; // third | first | far — far = 60 units
+let camDragging = false;
+let camLastX = 0, camLastY = 0;
+const gameEl = document.getElementById('game');
+
+gameEl.addEventListener('pointerdown', (e)=>{
+  if (e.target.closest('#controls') || e.target.closest('#touch') || e.target.closest('#buttons')) return;
+  camDragging = true;
+  camLastX = e.clientX;
+  camLastY = e.clientY;
+  try { gameEl.setPointerCapture(e.pointerId); } catch (_) {}
+});
+gameEl.addEventListener('pointermove', (e)=>{
+  if(!camDragging) return;
+  const dx=e.clientX-camLastX, dy=e.clientY-camLastY;
+  camLastX=e.clientX; camLastY=e.clientY;
+  camYaw += dx*0.008;
+  camPitch -= dy*0.006;
+  camPitch = Math.max(-0.15, Math.min(1.15, camPitch));
+  // Keep yaw within a sane range while allowing full horizontal camera rotation.
+  if(camYaw > Math.PI) camYaw -= Math.PI*2;
+  if(camYaw < -Math.PI) camYaw += Math.PI*2;
+});
+gameEl.addEventListener('pointerup', (e)=>{
+  camDragging=false;
+  try { gameEl.releasePointerCapture(e.pointerId); } catch (_) {}
+});
+gameEl.addEventListener('pointercancel', ()=>camDragging=false);
+gameEl.addEventListener('wheel', (e)=>{
+  e.preventDefault();
+  if(cameraViewMode!=='first'){
+    camDistance += e.deltaY*0.02;
+    camDistance = Math.max(2.25, Math.min(cameraViewMode==='far'?60:12, camDistance));
+  }
+},{passive:false});
+
+let pinchStartDistance=null;
+function touchDistance(a,b){const dx=a.clientX-b.clientX,dy=a.clientY-b.clientY;return Math.hypot(dx,dy);}
+gameEl.addEventListener('touchstart',(e)=>{
+  if(e.touches.length===2){pinchStartDistance=touchDistance(e.touches[0],e.touches[1]);camDragging=false;}
+},{passive:false});
+gameEl.addEventListener('touchmove',(e)=>{
+  if(e.touches.length===2 && pinchStartDistance){
+    e.preventDefault();
+    const d=touchDistance(e.touches[0],e.touches[1]);
+    const delta=pinchStartDistance-d;
+    if(cameraViewMode!=='first') camDistance=Math.max(2.25,Math.min(cameraViewMode==='far'?60:12,camDistance+delta*0.018));
+    pinchStartDistance=d;
+  }
+},{passive:false});
+gameEl.addEventListener('touchend',(e)=>{if(e.touches.length<2)pinchStartDistance=null;},{passive:false});
+
+function mat(c){return new THREE.MeshStandardMaterial({color:c,roughness:.72,metalness:.03});}
+function box(x,y,z,sx,sy,sz,c=0x39a9ff){
+  const base=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat(c)); base.position.set(x,y,z); base.castShadow=true; base.receiveShadow=true; scene.add(base); platforms.push(base);
+  const topMat=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.16,roughness:.55,metalness:.02});
+  const top=new THREE.Mesh(new THREE.BoxGeometry(Math.max(.1,sx-.16),.055,Math.max(.1,sz-.16)),topMat); top.position.set(x,y+sy/2+.028,z); top.receiveShadow=true; scene.add(top); base.userData.topMesh=top;
+  return base;
+}
+function coin(x,y,z){
+  const gold=new THREE.MeshStandardMaterial({color:0xffd21f,roughness:.28,metalness:.55,emissive:0x6b4d00,emissiveIntensity:.22});
+  const m=new THREE.Mesh(new THREE.TorusGeometry(.29,.10,12,24),gold);m.rotation.x=Math.PI/2;m.position.set(x,y,z);scene.add(m);coins.push(m);
+}
+function enemy(x,y,z){
+  const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.55,0),new THREE.MeshStandardMaterial({color:0xff2948,roughness:.38,metalness:.12,emissive:0x330006,emissiveIntensity:.28}));m.position.set(x,y,z);scene.add(m);enemies.push(m);
+}
+
+function clearWorld(){
+  [...platforms,...coins,...enemies,...stageDecor].forEach(o=>{
+    scene.remove(o);
+    if(o.userData && o.userData.topMesh) scene.remove(o.userData.topMesh);
+  });
+  platforms.length=coins.length=enemies.length=stageDecor.length=0;
+}
+function decorBox(x,y,z,sx,sy,sz,c=0xffffff,opacity=1){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),new THREE.MeshStandardMaterial({color:c,roughness:.55,metalness:.08,transparent:opacity<1,opacity}));
+  m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; scene.add(m); stageDecor.push(m); return m;
+}
+function checkpointMarker(x,y,z){
+  const g=new THREE.Group();
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,1.25,8),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.45}));
+  pole.position.y=.62;
+  const flag=new THREE.Mesh(new THREE.PlaneGeometry(.62,.34),new THREE.MeshStandardMaterial({color:0x20e0ff,side:THREE.DoubleSide,emissive:0x063c55,emissiveIntensity:.3}));
+  flag.position.set(.28,.95,0); flag.rotation.y=Math.PI/2;
+  g.add(pole,flag); g.position.set(x,y,z); scene.add(g); stageDecor.push(g);
+}
+function addRail(x,y,z,sx,sz){
+  decorBox(x,y+.52,z,sx,.10,.10,0x18304d);
+  decorBox(x,y+.18,z,sx,.08,.08,0x18304d);
+  decorBox(x,y+.35,z-sz/2,.08,.72,.08,0x18304d);
+  decorBox(x,y+.35,z+sz/2,.08,.72,.08,0x18304d);
+}
+
+// V7.4: lightweight scenery only. It never participates in physics/camera calculations.
+function addTree(x,y,z,s=1){
+  const g=new THREE.Group();
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.11*s,.16*s,.75*s,7),new THREE.MeshStandardMaterial({color:0x70452b,roughness:.9}));
+  trunk.position.y=.38*s;
+  const crown=new THREE.Mesh(new THREE.SphereGeometry(.48*s,10,8),new THREE.MeshStandardMaterial({color:0x2f9e5b,roughness:.85}));
+  crown.position.y=.92*s;
+  g.add(trunk,crown); g.position.set(x,y,z); scene.add(g); stageDecor.push(g); return g;
+}
+function addRing(x,y,z,r=.8){
+  const m=new THREE.Mesh(new THREE.TorusGeometry(r,.07,10,28),new THREE.MeshStandardMaterial({color:0x55e7ff,emissive:0x0b6680,emissiveIntensity:.45,roughness:.35,metalness:.25}));
+  m.position.set(x,y,z); m.rotation.x=Math.PI/2; scene.add(m); stageDecor.push(m); m.userData.float=true; return m;
+}
+function addObstacleFrame(x,y,z,w=1.8){
+  const g=new THREE.Group();
+  const m=new THREE.MeshStandardMaterial({color:0xff7b22,roughness:.5,metalness:.15,emissive:0x3a1200,emissiveIntensity:.15});
+  const a=new THREE.Mesh(new THREE.BoxGeometry(.12,1.55,.12),m); a.position.set(-w/2,.78,0);
+  const b=a.clone(); b.position.x=w/2;
+  const top=new THREE.Mesh(new THREE.BoxGeometry(w,.12,.12),m); top.position.set(0,1.55,0);
+  g.add(a,b,top); g.position.set(x,y,z); scene.add(g); stageDecor.push(g); return g;
+}
+function addCloud(x,y,z,s=1){
+  const g=new THREE.Group();
+  const m=new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.7,roughness:1});
+  [[0,0,0,.7],[.7,.08,.1,.5],[-.65,.02,.05,.48]].forEach(v=>{const q=new THREE.Mesh(new THREE.SphereGeometry(v[3]*s,10,8),m);q.position.set(v[0]*s,v[1]*s,v[2]*s);g.add(q);});
+  g.position.set(x,y,z); scene.add(g); stageDecor.push(g); return g;
+}
+
+function buildStage(n){
+  clearWorld();
+  window.stageFinishPoint = null;
+  stage=n; const seasonLabel=document.getElementById('seasonNum'); if(seasonLabel)seasonLabel.textContent=season; document.getElementById('stageNum').textContent=n;
+  finishTransition=false;
+  let x=0,z=0,y=0;
+  box(0,0,0,8,1,8,0x45d05c);
+  checkpointMarker(0,.5,2.5);
+  skinPortal=makeSkinPortal(0,.5,3.35);
+  // فضای اطراف مسیر: سبک و تزئینی، بدون تغییر در فیزیک بازی.
+  addTree(-3.8,.5,1.4,.9); addTree(3.8,.5,.8,.8);
+  addCloud(-5,4,0,1.3); addCloud(5,5,-10,1.0);
+  // هر مرحله یک الگوی متفاوت دارد؛ هسته فیزیک و دوربین دست‌نخورده می‌ماند.
+  const themeColors=[
+    [0x39a9ff,0x66e0ff], [0xff4fb3,0xff8ad1], [0xffcf33,0xfff08a], [0x7c5cff,0xb39aff],
+    [0x32d583,0x8af5b8], [0xff7b22,0xffc06b], [0x21c7d9,0x8cf6ff], [0xef4444,0xff8a8a]
+  ];
+  const theme=themeColors[(n-1+(season-1)*3)%themeColors.length]; const seasonOffset=(season-1)*17; const hardFactor=season===3?0.82:1;
+  for(let i=1;i<=30;i++){
+    let pattern=(n-1+seasonOffset)%6;
+    if(pattern===0){ x=Math.sin(i*.78)*4.2+(i-7)*.08; }
+    else if(pattern===1){ x=((i%2)*2-1)*(2.3+(i%4)*.45); }
+    else if(pattern===2){ x=Math.sin(i*1.18)*3.0; }
+    else if(pattern===3){ x=(i-7)*.55; }
+    else if(pattern===4){ x=Math.cos(i*.62)*4.2; }
+    else { x=(i%3===0?0:(i%2?3.5:-3.5)); }
+    // فاصلهٔ z همیشه رو به جلو و یکنواخت است؛ پیچ‌وخم فقط روی محور x انجام می‌شود.
+    const z=-8.0*i;
+    // مسیر اصلی کاملاً هم‌سطح نگه داشته می‌شود تا مسیر بالایی/میان‌بُر ساخته نشود.
+    y=0.35;
+    const col=(i%2?theme[0]:theme[1]);
+    const platformW = (pattern===5 ? (i%3===0?5.0:3.2) : (i%4===0?4.7:3.8)) * hardFactor;
+    const platformD = (pattern===1 ? (i%2?2.7:4.6) : 3.8) * (season===3?0.9:1);
+    box(x,y,z,platformW,.7,platformD,col);
+
+    // تفاوت مرحله‌ها: نوع مانع، ارتفاع و تزئینات تغییر می‌کند.
+    if(pattern===0 && i%3===1) addRing(x,y+1.5,z,.72);
+    if(pattern===1 && i%2===1) addObstacleFrame(x,y-.35,z,1.9);
+    if(pattern===2 && i%3!==0) addRail(x,y-.35,z,3.0,2.6);
+    if(pattern===3 && i%4===0) { addTree(x+2.5,y-.35,z,.7); addTree(x-2.5,y-.35,z,.7); }
+    if(pattern===4 && i%2===0) addCloud(x+3,y+3.2,z,.7);
+    if(pattern===5 && i%3===0){
+      decorBox(x-1.25,y+.5,z,.22,1.15,.22,0xff7b22);
+      decorBox(x+1.25,y+.5,z,.22,1.15,.22,0xff7b22);
+    }
+    if((n+i)%3!==0) addRail(x,y-.35,z,3.1,2.8);
+    if(i%2===0 || (pattern===5&&i%3===0)){ coin(x,y+1,z); coin(x+(i%4===0?1.15:-1.15),y+.75,z-.8); }
+    if((n+i)%5===0){
+      decorBox(x,y+.72,z,1.35,.22,.22,0xffffff,.9);
+      decorBox(x,y+.86,z,1.0,.08,.08,theme[1],.95);
+    }
+    if((n*2+i)%7===0 || (season===3 && (n+i)%4===0)) enemy(x,y+1,z);
+    if(season===3 && i%5===0){ addObstacleFrame(x,y-.35,z,1.55); }
+  }
+  // مسیر پایانی: ادامهٔ همان مسیر اصلی، بدون مسیر بالایی یا میان‌بُر.
+  const lastX=x, lastY=Math.min(y,2.2), lastZ=z;
+  const approachCount=10;
+  const approachStep=10.0;
+  let finishX=lastX, finishY=lastY, finishZ=lastZ;
+  for(let k=1;k<=approachCount;k++){
+    const ax=lastX + Math.sin((k+n)*.72)*2.8;
+    const az=lastZ - approachStep*k;
+    const ay=0.35;
+    box(ax,ay,az,4.0,.7,4.8,(k%2)?theme[0]:theme[1]);
+    addRail(ax,ay-.35,az,3.4,2.8);
+    if(k%2===1) addObstacleFrame(ax,ay-.35,az,2.0);
+    if(k%2===0) enemy(ax + (k%4===0?1.1:-1.1),ay+1,az);
+    coin(ax,ay+1,az);
+    finishX=ax; finishY=ay; finishZ=az;
+  }
+  // خط پایان با فاصلهٔ واقعی از آخرین سکوی مسیر قرار می‌گیرد.
+  finishZ -= 10.0;
+  window.stageFinishPoint={x:finishX,y:finishY,z:finishZ};
+  box(finishX,finishY,finishZ,9,1,8,0xffc42d);
+  checkpointMarker(finishX,finishY+.5,finishZ);
+  for(let i=0;i<7;i++) coin(finishX-2.5+i*.8,finishY+1,finishZ);
+  decorBox(finishX-3.1,finishY+1.4,finishZ,.22,2.8,.22,0xffffff);
+  decorBox(finishX+3.1,finishY+1.4,finishZ,.22,2.8,.22,0xffffff);
+  decorBox(finishX,finishY+2.65,finishZ,6.4,.22,.22,0x20e0ff);
+  addRing(finishX,finishY+2.0,finishZ,1.0);
+  addCloud(finishX-4,finishY+4,finishZ-2,.8); addCloud(finishX+4,finishY+3.5,finishZ+1,.7);
+  // V4.4: reset the character to the exact top surface of the start platform.
+  checkpoint.set(0,0.5,0); player.position.copy(checkpoint); player.visible=true; player.traverse(o=>{if(o.isMesh)o.visible=false;}); if(player.userData.hdSkinRig) player.userData.hdSkinRig.traverse(o=>{if(o.isMesh)o.visible=true;}); vy=0; onGround=true; camYaw=FIXED_CAM_YAW; camPitch=0.22; if(cameraViewMode==='far') camDistance=60; else if(cameraViewMode==='first') camDistance=0.08; else camDistance=3.25; camera.position.set(-3.05,2.25,1.11); camera.lookAt(player.position.x,player.position.y+1.0,player.position.z);
+  if(window.currentAccount && window.saveCurrentAccount)window.saveCurrentAccount();
+  showToast('مرحله '+n+' — مسیر خیلی طولانی و جدید آماده است!');
+}
+function updateSeasonUI(){
+  const status=document.getElementById('seasonStatus');
+  document.querySelectorAll('.seasonChoice').forEach(btn=>{const n=Number(btn.dataset.season);btn.classList.toggle('unlocked',n<=unlockedSeason);btn.classList.toggle('locked',n>unlockedSeason);btn.classList.toggle('active',n===season);btn.textContent=n===1?'🟢 فصل ۱ — ۵۰ مرحله':n===2?(n<=unlockedSeason?'🟢 فصل ۲ — ۱۰۰ مرحله جدید':'🔒 فصل ۲ — ۱۰۰ مرحله جدید'):(n<=unlockedSeason?'🟢 فصل ۳ — ۲۰۰ مرحله سخت‌تر + اسکین‌های جدید':'🔒 فصل ۳ — ۲۰۰ مرحله سخت‌تر + اسکین‌های جدید');});
+  const maxEl=document.getElementById('stageMax');if(maxEl)maxEl.textContent=STAGES_PER_SEASON_BY_SEASON[season-1]||50;if(status)status.textContent='فصل فعلی: '+season+' • '+(STAGES_PER_SEASON_BY_SEASON[season-1]||50)+' مرحله • فصل‌های بازشده: '+unlockedSeason+' از '+SEASON_COUNT;
+}
+function openSeasonPanel(){updateSeasonUI();document.getElementById('seasonPanel').style.display='flex';}
+function closeSeasonPanel(){document.getElementById('seasonPanel').style.display='none';}
+document.getElementById('seasonBtn').onclick=openSeasonPanel;
+document.getElementById('seasonClose').onclick=closeSeasonPanel;
+document.getElementById('seasonCompleteClose').onclick=()=>document.getElementById('seasonCompletePanel').style.display='none';
+document.getElementById('seasonPanel').addEventListener('click',e=>{if(e.target.id==='seasonPanel')closeSeasonPanel();});
+document.querySelectorAll('.seasonChoice').forEach(btn=>btn.addEventListener('click',()=>{
+  const n=Number(btn.dataset.season);
+  if(n>unlockedSeason){showToast('🔒 این فصل هنوز باز نشده؛ اول فصل قبلی را کامل کن.');return;}
+  season=n; stage=1; victoryRewardGiven=false; finishTransition=false; closeSeasonPanel(); buildStage(1); if(window.saveCurrentAccount)window.saveCurrentAccount(); showToast('🎮 فصل '+season+' انتخاب شد!');
+}));
+
+buildStage(1);
+updateSeasonUI();
+
+function showToast(t){const e=document.getElementById('toast');e.textContent=t;e.style.display='block';clearTimeout(showToast.t);showToast.t=setTimeout(()=>e.style.display='none',1500);}
+function addCoins(n){coinCount+=n;document.getElementById('coins').textContent=coinCount;syncShopCoins();if(window.saveCurrentAccount)window.saveCurrentAccount();}
+function collectCoins(){
+  coins.forEach(c=>{if(c.visible && player.position.distanceTo(c.position)<1.2){c.visible=false;addCoins(1);}});
+}
+function killAll(){
+  if(!killAllOwned){showToast('☠️ اول Kill All را از فروشگاه بخر!');return;}
+  // Kill All is a single-use purchase: consume it immediately.
+  killAllOwned=false;
+  enemies.forEach(e=>e.visible=false);
+  const kb=document.getElementById('killBtn'); if(kb)kb.textContent='☠️ Kill All';
+  if(window.saveCurrentAccount)window.saveCurrentAccount();
+  showToast('☠️ همه دشمن‌ها حذف شدند؛ شارژ Kill All مصرف شد. برای بار بعد دوباره بخر.');
+}
+const CHEST_CONFIG={
+  normal:{name:'صندوق عادی',price:400,min:100,max:1000},
+  cool:{name:'صندوق خفن',price:1000,min:700,max:2000},
+  super:{name:'صندوق سوپر خفن',price:5000,min:3500,max:7000}
+};
+function weightedChestReward(min,max){
+  // نزولی: مقدارهای پایین وزن بیشتری دارند و مقدارهای بالا شانس کمتری.
+  const count=max-min+1;
+  const total=count*(count+1)/2;
+  let r=Math.random()*total;
+  for(let i=0;i<count;i++){
+    const weight=count-i;
+    if(r<weight)return min+i;
+    r-=weight;
+  }
+  return min;
+}
+function openChest(type){
+  const cfg=CHEST_CONFIG[type];
+  if(!cfg)return;
+  if(coinCount<cfg.price){showToast('🪙 برای '+cfg.name+' حداقل '+cfg.price.toLocaleString('fa-IR')+' سکه لازم است!');return;}
+  coinCount-=cfg.price;
+  const reward=weightedChestReward(cfg.min,cfg.max);
+  coinCount+=reward;
+  const c=document.getElementById('coins'); if(c)c.textContent=String(coinCount);
+  syncShopCoins();
+  if(window.saveCurrentAccount)window.saveCurrentAccount();
+  showToast('🎉 '+cfg.name+' باز شد! +'+reward.toLocaleString('fa-IR')+' سکه گرفتی!');
+}
+function buyCarpet(){
+  if(carpetOwned){carpet=true; if(window.updateCarpetDownButton)window.updateCarpetDownButton(); if(window.saveCurrentAccount)window.saveCurrentAccount(); showToast('🪄 فرش جادویی فعال شد!');closeShop();return;}
+  if(coinCount<500){showToast('🪙 برای فرش جادویی 500 سکه لازم است!');return;}
+  coinCount-=500; document.getElementById('coins').textContent=coinCount; syncShopCoins();
+  carpetOwned=true;
+  carpet=true;
+  if(window.saveCurrentAccount)window.saveCurrentAccount();
+  if(window.updateCarpetDownButton)window.updateCarpetDownButton();
+  showToast('🪄 فرش جادویی با 500 سکه خریداری شد!');
+  closeShop();
+}
+function buyKillAll(){
+  if(killAllOwned){showToast('☠️ Kill All قبلاً خریداری شده!');closeShop();return;}
+  if(coinCount<2000){showToast('🪙 برای Kill All 2000 سکه لازم است!');return;}
+  coinCount-=2000; document.getElementById('coins').textContent=coinCount; syncShopCoins();
+  killAllOwned=true;
+  if(window.saveCurrentAccount)window.saveCurrentAccount();
+  showToast('☠️ Kill All با 2000 سکه خریداری شد!');
+  closeShop();
+}
+const COIN_PURCHASE_CHAT='https://rubika.ir/HMAJROD';
+const COIN_PACKAGES=[5000,10000,20000,50000,100000];
+const COIN_CODE_SECRET='PARKOUR_COIN_CODE_V1_7391846205';
+function openCoinPurchaseChat(){
+  try{window.open(COIN_PURCHASE_CHAT,'_blank','noopener,noreferrer');}catch(_){window.location.href=COIN_PURCHASE_CHAT;}
+}
+function buyCoinPackage(coins,priceToman){
+  try{localStorage.setItem('parkour_pending_coin_purchase',JSON.stringify({coins:Number(coins),price:Number(priceToman),username:window.currentAccount?.username||''}));}catch(_){}
+  showToast('💰 بسته '+Number(coins).toLocaleString('fa-IR')+' سکه انتخاب شد — در حال باز کردن پیوی روبیکا...');
+  setTimeout(()=>openCoinPurchaseChat(),180);
+}
+function coinCodeHash(text){
+  let h=2166136261;
+  for(let i=0;i<String(text).length;i++){h^=String(text).charCodeAt(i);h=Math.imul(h,16777619);}
+  return (h>>>0);
+}
+function makeCoinCode(username,coins,serial){
+  const pkg=COIN_PACKAGES.indexOf(Number(coins))+1;
+  if(!pkg)return '';
+  const uh=String(coinCodeHash(String(username).toLowerCase())%1000000).padStart(6,'0');
+  const ss=String(serial).padStart(4,'0');
+  const check=String(coinCodeHash(COIN_CODE_SECRET+'|'+String(username).toLowerCase()+'|'+coins+'|'+serial)%10000).padStart(4,'0');
+  return String(pkg).padStart(2,'0')+uh+ss+check;
+}
+function parseCoinCode(code,username){
+  const c=String(code||'').replace(/\\D/g,'');
+  if(!/^\\d{16}$/.test(c))return null;
+  const pkg=Number(c.slice(0,2)), uh=c.slice(2,8), serial=Number(c.slice(8,12)), check=c.slice(12,16);
+  if(pkg<1||pkg>COIN_PACKAGES.length)return null;
+  const coins=COIN_PACKAGES[pkg-1];
+  if(uh!==String(coinCodeHash(String(username).toLowerCase())%1000000).padStart(6,'0'))return null;
+  const expected=String(coinCodeHash(COIN_CODE_SECRET+'|'+String(username).toLowerCase()+'|'+coins+'|'+serial)%10000).padStart(4,'0');
+  if(check!==expected)return null;
+  return {coins,serial};
+}
+function redeemCoinPurchaseCode(){
+  const input=document.getElementById('coinRedeemCode'), msg=document.getElementById('coinRedeemMsg');
+  const code=input?.value?.trim()||'';
+  if(!window.currentAccount?.username){
+    if(msg)msg.textContent='❌ اول وارد حساب شو.';
+    return;
+  }
+  const parsed=parseCoinCode(code,window.currentAccount.username);
+  if(!parsed){
+    if(msg)msg.textContent='❌ کد نامعتبر است یا برای این حساب نیست.';
+    return;
+  }
+  let used=[];
+  try{used=JSON.parse(localStorage.getItem('parkour_used_coin_codes')||'[]');}catch(_){}
+  if(used.includes(code)){
+    if(msg)msg.textContent='⚠️ این کد قبلاً در این دستگاه استفاده شده است.';
+    return;
+  }
+  coinCount=(Number(coinCount)||0)+parsed.coins;
+  if(typeof paintCoins==='function')paintCoins(); else {const e=document.getElementById('coins');if(e)e.textContent=coinCount;}
+  if(typeof saveCurrent==='function')saveCurrent();
+  used.push(code);
+  try{localStorage.setItem('parkour_used_coin_codes',JSON.stringify(used.slice(-200)));}catch(_){}
+  if(input)input.value='';
+  if(msg)msg.textContent='✅ '+Number(parsed.coins).toLocaleString('fa-IR')+' سکه به حساب «'+window.currentAccount.username+'» اضافه شد.';
+  showToast('🎉 سکه‌ها به حساب '+window.currentAccount.username+' اضافه شد!');
+}
+function openCoinCodeGenerator(){
+  const username=prompt('نام کاربری خریدار را دقیق وارد کن:');
+  if(!username)return;
+  const options=COIN_PACKAGES.map((n,i)=>(i+1)+') '+Number(n).toLocaleString('fa-IR')+' سکه').join('\\n');
+  const choice=prompt('بسته را انتخاب کن:\\n'+options+'\\n\\nشماره بسته:');
+  const idx=Number(choice)-1;
+  if(!Number.isInteger(idx)||idx<0||idx>=COIN_PACKAGES.length){showToast('❌ بسته نامعتبر است.');return;}
+  const serial=Math.floor(1000+Math.random()*9000);
+  const code=makeCoinCode(username,COIN_PACKAGES[idx],serial);
+  prompt('🎟️ کد خرید را برای خریدار بفرست:',code);
+  showToast('🎟️ کد خرید ساخته شد.');
+}
+function closeShop(){document.getElementById('shop').style.display='none';}
+function syncShopCoins(){
+  const e=document.getElementById('shopCoins');
+  if(e) e.textContent=typeof coinCount==='number'?coinCount:0;
+}
+document.getElementById('shopBtn').onclick=()=>{
+  syncShopCoins();
+  document.getElementById('shop').style.display='flex';
+};
+document.getElementById('chestBtn').onclick=()=>{
+  syncShopCoins();
+  const shop=document.getElementById('shop');
+  shop.style.display='flex';
+  setTimeout(()=>{const chest=shop.querySelector('.chestSection'); if(chest)chest.scrollIntoView({behavior:'smooth',block:'start'});},50);
+};
+document.getElementById('carpetBtn').onclick=()=>{
+  if(!carpetOwned){document.getElementById('shop').style.display='flex';return;}
+  carpet=!carpet;
+  if(window.carpetDownPressed!==undefined) window.carpetDownPressed=false;
+  if(window.updateCarpetDownButton)window.updateCarpetDownButton();
+  if(window.saveCurrentAccount)window.saveCurrentAccount();
+  document.getElementById('carpetBtn').textContent=carpet?'🪄 فرش جادویی ✓':'🪄 فرش جادویی';
+  showToast(carpet?'🪄 فرش جادویی فعال شد!':'🪄 فرش جادویی غیرفعال شد!');
+};
+document.getElementById('killBtn').onclick=()=>{if(killAllOwned)killAll();else document.getElementById('shop').style.display='flex';};
+document.getElementById('cameraReset').onclick=()=>{
+  cameraViewMode='third';
+  camYaw=FIXED_CAM_YAW; camPitch=0.24; camDistance=3.25;
+  player.visible=true;
+  document.getElementById('cameraFirstPerson').textContent='👁️ اول‌شخص';
+  document.getElementById('cameraFar').textContent='🌌 خیلی دور';
+  showToast('🎥 دوربین به حالت پیش‌فرض برگشت');
+};
+function changeCameraDistance(delta){
+  if(cameraViewMode==='first') return;
+  camDistance=Math.max(2.25,Math.min(cameraViewMode==='far'?60:12,camDistance+delta));
+}
+document.getElementById('cameraBack').onclick=()=>{changeCameraDistance(2);showToast('🔎 دوربین عقب رفت');};
+document.getElementById('cameraFront').onclick=()=>{changeCameraDistance(-2);showToast('🔎 دوربین جلو رفت');};
+
+function setCameraViewMode(mode){
+  cameraViewMode=mode;
+  if(mode==='first'){
+    camDistance=0.08;
+    player.visible=false;
+    document.getElementById('cameraFirstPerson').textContent='👁️ سوم‌شخص';
+    document.getElementById('cameraFar').textContent='🌌 خیلی دور';
+    showToast('👁️ اول‌شخص فعال شد');
+  }else if(mode==='far'){
+    camDistance=60;
+    player.visible=true;
+    document.getElementById('cameraFirstPerson').textContent='👁️ اول‌شخص';
+    document.getElementById('cameraFar').textContent='🌌 عادی';
+    showToast('🌌 نمای فوق‌العاده دور فعال شد');
+  }else{
+    camDistance=3.25;
+    player.visible=true;
+    document.getElementById('cameraFirstPerson').textContent='👁️ اول‌شخص';
+    document.getElementById('cameraFar').textContent='🌌 خیلی دور';
+    showToast('👤 نمای عادی فعال شد');
+  }
+}
+
+function bindCameraViewButtons(){
+  const firstBtn=document.getElementById('cameraFirstPerson');
+  const farBtn=document.getElementById('cameraFar');
+  if(firstBtn && firstBtn.dataset.cameraBound!=='1'){
+    firstBtn.dataset.cameraBound='1';
+    firstBtn.addEventListener('pointerdown',(e)=>{
+      e.preventDefault(); e.stopPropagation();
+      setCameraViewMode(cameraViewMode==='first'?'third':'first');
+    },{passive:false});
+  }
+  if(farBtn && farBtn.dataset.cameraBound!=='1'){
+    farBtn.dataset.cameraBound='1';
+    farBtn.addEventListener('pointerdown',(e)=>{
+      e.preventDefault(); e.stopPropagation();
+      setCameraViewMode(cameraViewMode==='far'?'third':'far');
+    },{passive:false});
+  }
+}
+bindCameraViewButtons();
+const settingsEl=document.getElementById('settings');
+const speedEl=document.getElementById('cameraSpeed');
+const speedValueEl=document.getElementById('cameraSpeedValue');
+function setCameraFollowSpeedFromUI(v){
+  const n=Math.max(10,Math.min(100,Number(v)||50));
+  speedEl.value=String(n);
+  speedValueEl.textContent=n+'٪';
+  cameraFollowSpeed=0.02+(n-10)/90*0.18;
+  try{localStorage.setItem('parkour_camera_follow_speed',String(cameraFollowSpeed));}catch(_){ }
+}
+function syncCameraSpeedUI(){
+  const pct=Math.round(10+((cameraFollowSpeed-0.02)/0.18)*90);
+  setCameraFollowSpeedFromUI(pct);
+}
+document.getElementById('settingsBtn').onclick=()=>{syncCameraSpeedUI();settingsEl.style.display='flex';};
+document.getElementById('closeSettings').onclick=()=>{settingsEl.style.display='none';};
+document.getElementById('cameraSpeedDefault').onclick=()=>{setCameraFollowSpeedFromUI(50);showToast('🎥 سرعت دوربین روی ۵۰٪ تنظیم شد');};
+speedEl.addEventListener('input',()=>setCameraFollowSpeedFromUI(speedEl.value));
+settingsEl.addEventListener('pointerdown',e=>{if(e.target===settingsEl)settingsEl.style.display='none';});
+
+window.openSkinPortal=openSkinPortal;window.closeSkinPortal=closeSkinPortal;window.applySkin=applySkin;
+document.getElementById('skinClose')?.addEventListener('click',()=>{skinPortalOpen=false;closeSkinPortal();});
+document.getElementById('skinPortal')?.addEventListener('click',e=>{if(e.target.id==='skinPortal'){skinPortalOpen=false;closeSkinPortal();}});
+document.querySelectorAll('.skinOption').forEach(b=>b.addEventListener('click',()=>{applySkin(b.dataset.skin);skinPortalOpen=false;closeSkinPortal();showToast('✨ اسکین '+b.querySelector('b').textContent+' انتخاب شد!');}));
+window.buyCarpet=buyCarpet;window.killAll=killAll;window.addCoins=addCoins;window.closeShop=closeShop;
+
+document.querySelectorAll('[data-key]').forEach(b=>{
+  const k=b.dataset.key;
+  const down=e=>{e.preventDefault();keys[k]=true};
+  const up=e=>{e.preventDefault();keys[k]=false};
+  b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);
+});
+let jump=false;
+const jumpButton=document.getElementById('jump');
+let jumpTouchLock=false;
+function triggerJump(e){
+  if(e){e.preventDefault();e.stopPropagation();}
+  if(jumpTouchLock)return;
+  jumpTouchLock=true;
+  jump=true;
+  setTimeout(()=>jumpTouchLock=false,120);
+}
+function bindJumpButton(){
+  const b=document.getElementById('jump');
+  if(!b || b.dataset.bound==='1') return;
+  b.dataset.bound='1';
+  b.addEventListener('pointerdown',triggerJump,{passive:false});
+  b.addEventListener('touchstart',triggerJump,{passive:false});
+}
+bindJumpButton();
+document.addEventListener('DOMContentLoaded',bindJumpButton);
+addEventListener('keydown', (e)=>{
+  if(e.code === 'Space' || e.code === 'ArrowUp'){
+    e.preventDefault();
+    jump=true;
+  }
+});
+
+
+let jumpPhase=0;
+let lastGrounded=true;
+function update(){
+  try{
+  if(!window.gameStarted){ renderer.render(scene,camera); return; }
+
+  const speed=carpet?0.22:0.16;
+  let dx=0,dz=0;
+  const j=window.mobileJoy();
+  const joyWorldX = j.x*Math.cos(camYaw) - j.y*Math.sin(camYaw);
+  const joyWorldZ = j.x*Math.sin(camYaw) + j.y*Math.cos(camYaw);
+  dx += joyWorldX*speed; dz += joyWorldZ*speed;
+
+  // Camera follows the joystick's movement direction smoothly.
+  // This keeps forward on the joystick aligned with what the camera sees,
+  // without changing the character's facing direction.
+  if(Math.hypot(j.x,j.y)>0.12){
+    const targetYaw=Math.atan2(joyWorldX,-joyWorldZ);
+    let yawDelta=targetYaw-camYaw;
+    while(yawDelta>Math.PI) yawDelta-=Math.PI*2;
+    while(yawDelta<-Math.PI) yawDelta+=Math.PI*2;
+    camYaw += yawDelta*cameraFollowSpeed;
+    if(camYaw>Math.PI) camYaw-=Math.PI*2;
+    if(camYaw<-Math.PI) camYaw+=Math.PI*2;
+  }
+  if(keys.w)dz-=speed;if(keys.s)dz+=speed;if(keys.a)dx-=speed;if(keys.d)dx+=speed;
+  player.position.x+=dx;player.position.z+=dz;
+  if(carpet){
+    if(window.carpetDownPressed) player.position.y -= 0.22;
+    else if(jump) player.position.y += 0.18;
+    jump=false;
+    vy=0;
+  }
+  else{
+    vy-=.018;player.position.y+=vy;
+    let grounded=false;
+    for(const p of platforms){
+      const withinX=Math.abs(player.position.x-p.position.x)<p.geometry.parameters.width/2+.35;
+      const withinZ=Math.abs(player.position.z-p.position.z)<p.geometry.parameters.depth/2+.35;
+      const top=p.position.y+p.geometry.parameters.height/2;
+      const feetY = player.position.y;
+      if(withinX && withinZ && feetY <= top + 0.35 && feetY >= top - 0.65 && vy <= 0){
+        player.position.y = top;
+        vy = 0;
+        grounded = true;
+      }
+    }
+    const nearGround = grounded || onGround || Math.abs(vy) < 0.04;
+    if(jump && nearGround){
+      vy = 0.38;
+      grounded = false;
+      onGround = false;
+    }
+    jump = false;
+    onGround = grounded;
+  }
+  // V50: keep the character's FEET locked to the platform top.
+  // player.position.y is the feet height; meshes are built above y=0.
+  if(!carpet && onGround){
+    let bestTop=null, bestDist=Infinity;
+    for(const p of platforms){
+      const withinX=Math.abs(player.position.x-p.position.x)<=p.geometry.parameters.width/2+.28;
+      const withinZ=Math.abs(player.position.z-p.position.z)<=p.geometry.parameters.depth/2+.28;
+      if(withinX&&withinZ){
+        const top=p.position.y+p.geometry.parameters.height/2;
+        const d=Math.abs(player.position.y-top);
+        if(d<bestDist){bestDist=d;bestTop=top;}
+      }
+    }
+    if(bestTop!==null && bestDist<0.5) player.position.y=bestTop;
+  }
+  // Fall / respawn
+  if(player.position.y<-8){player.position.copy(checkpoint);vy=0;showToast('💥 دوباره از Checkpoint شروع شد!');}
+  // finish: dedicated finish point, always beyond the final normal platform
+  const fp=window.stageFinishPoint;
+  if(!skinWorldActive && fp && !finishTransition && Math.hypot(player.position.x-fp.x, player.position.z-fp.z)<3.6 && Math.abs(player.position.y-fp.y)<3.5){
+    const seasonStages=STAGES_PER_SEASON_BY_SEASON[Math.max(0,season-1)]||STAGES_PER_SEASON; if(stage<seasonStages){
+      finishTransition=true;
+      buildStage(stage+1);
+    } else if(!victoryRewardGiven){
+      finishTransition=true;
+      victoryRewardGiven=true;
+      addCoins(season===1?200:(season===2?500:1000));
+      if(season<SEASON_COUNT){
+        unlockedSeason=Math.max(unlockedSeason,season+1);
+        if(window.saveCurrentAccount)window.saveCurrentAccount();
+        const cp=document.getElementById('seasonCompletePanel');
+        const ct=document.getElementById('seasonCompleteTitle');
+        const tx=document.getElementById('seasonCompleteText');
+        const nb=document.getElementById('seasonNextBtn');
+        if(ct)ct.textContent='🏆 فصل '+season+' کامل شد!';
+        if(tx)tx.textContent='تبریک! فصل '+season+' را کامل کردی. '+(season===1?200:(season===2?500:1000))+' سکه گرفتی و فصل '+(season+1)+' برایت باز شد.';
+        if(nb){nb.textContent='➡️ ورود به فصل '+(season+1);nb.style.display='block';nb.onclick=()=>{cp.style.display='none';season=season+1;buildStage(1);player.position.copy(checkpoint);vy=0;onGround=true;jump=false;victoryRewardGiven=false;finishTransition=false;updateSeasonUI();if(window.saveCurrentAccount)window.saveCurrentAccount();showToast('🔥 فصل '+season+' شروع شد!');};}
+        if(cp)cp.style.display='flex';
+      }else{
+        if(window.saveCurrentAccount)window.saveCurrentAccount();
+        const cp=document.getElementById('seasonCompletePanel');
+        const ct=document.getElementById('seasonCompleteTitle');
+        const tx=document.getElementById('seasonCompleteText');
+        const nb=document.getElementById('seasonNextBtn');
+        if(ct)ct.textContent='👑 هر ۳ فصل کامل شد!';
+        if(tx)tx.textContent='تبریک! تمام ۳۵۰ مرحله را کامل کردی و ۱۰۰۰ سکه جایزه گرفتی. می‌توانی دوباره از فصل ۱ شروع کنی.';
+        if(nb){nb.textContent='🔄 شروع دوباره از فصل ۱';nb.style.display='block';nb.onclick=()=>{cp.style.display='none';season=1;buildStage(1);player.position.copy(checkpoint);vy=0;onGround=true;jump=false;victoryRewardGiven=false;finishTransition=false;updateSeasonUI();showToast('🔄 فصل ۱ دوباره شروع شد!');};}
+        if(cp)cp.style.display='flex';
+      }
+    }
+  }
+  // enemy touch
+  enemies.forEach(e=>{if(e.visible&&player.position.distanceTo(e.position)<1.1){player.position.copy(checkpoint);vy=0;showToast('☠️ به دشمن خوردی!');}});
+  collectCoins();
+  portalUpdate();
+  updateSkinWorldInteraction();
+  const cp=Math.cos(camPitch), sp=Math.sin(camPitch);
+  const cy=Math.cos(camYaw), sy=Math.sin(camYaw);
+  // Camera view modes: third-person (original), first-person, or very far.
+  // The original third-person camera math remains unchanged.
+  if(cameraViewMode==='first'){
+    player.visible=false;
+    camera.position.set(player.position.x,player.position.y+1.58,player.position.z);
+    const look=new THREE.Vector3(player.position.x-sy*4.0,player.position.y+1.58+sp*1.0,player.position.z+cy*4.0);
+    camera.lookAt(look);
+  }else{
+    player.visible=true; player.traverse(o=>{if(o.isMesh)o.visible=false;}); if(player.userData.hdSkinRig) player.userData.hdSkinRig.traverse(o=>{if(o.isMesh)o.visible=true;});
+    const effectiveDistance = cameraViewMode==='far' ? 60 : camDistance;
+    const desired=new THREE.Vector3(
+      player.position.x-sy*cp*effectiveDistance,
+      player.position.y+1.05+sp*effectiveDistance,
+      player.position.z+cy*cp*effectiveDistance
+    );
+    camera.position.copy(desired);
+    camera.lookAt(player.position.x,player.position.y+1.05,player.position.z);
+  }
+  // Character stays fixed-facing; only the camera is turned 70° to the left.
+  player.rotation.y=0;
+    // انیمیشن طبیعی‌تر دست/پا و پرش؛ فقط ظاهر کاراکتر را تغییر می‌دهد.
+    try{
+      const j=window.mobileJoy?window.mobileJoy():{x:0,y:0};
+      const moving=Math.hypot(j.x,j.y)>.12 || keys.w||keys.a||keys.s||keys.d;
+      if(!onGround){
+        jumpPhase+=.16;
+        const air=Math.sin(jumpPhase)*.10;
+        legL.rotation.x=.28+air; legR.rotation.x=-.28-air;
+        armL.rotation.x=-.20; armR.rotation.x=.20;
+        player.scale.y += (1.00-player.scale.y)*.08;
+      }else if(moving){
+        walkPhase+=.24;
+        const sw=Math.sin(walkPhase)*.52;
+        legL.rotation.x=sw; legR.rotation.x=-sw;
+        armL.rotation.x=-sw*.68; armR.rotation.x=sw*.68;
+        player.scale.y += (1.00-player.scale.y)*.12;
+      }else{
+        legL.rotation.x*=.80; legR.rotation.x*=.80;
+        armL.rotation.x*=.80; armR.rotation.x*=.80;
+        if(typeof syncDetailedSkinAnimation==='function')syncDetailedSkinAnimation();
+        player.scale.y += (1.00-player.scale.y)*.10;
+      }
+      // landing squash خیلی ملایم و کوتاه
+      if(onGround && !lastGrounded){ player.scale.y=.99; player.scale.x=1.03; player.scale.z=1.03; }
+      else { player.scale.x += (1.00-player.scale.x)*.12; player.scale.z += (1.00-player.scale.z)*.12; }
+      lastGrounded=onGround;
+    }catch(_){}
+    const t=performance.now()*0.001;
+    coins.forEach((c,i)=>{ if(c.visible){c.rotation.z+=.035; c.rotation.y+=.018; c.position.y += Math.sin(t*3+i)*0.0008;} });
+    enemies.forEach((e,i)=>{if(e.visible){e.rotation.x+=.018; e.rotation.y+=.025; e.position.y += Math.sin(t*2+i)*0.0015;}});
+    stageDecor.forEach((o,i)=>{
+      if(o && o.userData && o.userData.float){ o.rotation.y += .006; o.position.y += Math.sin(t*1.7+i)*0.001; }
+    });
+    renderer.render(scene,camera);
+  }catch(err){
+    // یک خطای جزئی نباید حلقه‌ی بازی را متوقف کند.
+  }finally{
+    requestAnimationFrame(update);
+  }
+}
+document.getElementById('skinWorldExit').onclick=()=>exitSkinWorld();
+document.getElementById('skinWorldPrompt').onclick=()=>{if(skinWorldTarget)openSkinPurchase(skinWorldTarget);};
+document.getElementById('skinWorldPrompt').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(skinWorldTarget)openSkinPurchase(skinWorldTarget);},{passive:false});
+document.getElementById('skinWorldYes').onclick=()=>buySkinWorldTarget();
+document.getElementById('skinWorldNo').onclick=()=>closeSkinPurchase();
+update();
+addEventListener('resize',()=>{try{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight,false);}catch(_){}});
+</script>
+<!-- V7.3 SAFE VISUAL EXPANSION: decoration only; movement/camera/physics untouched -->
+<script>
+(function(){
+  function addSafeStageVisuals(n){
+    try{
+      const cloudSets=[[-15,18,-28,1.05],[13,22,-52,.9],[-12,20,-82,.82],[15,19,-112,1.0]];
+      cloudSets.forEach(p=>{
+        const g=addCloud(p[0],p[1],p[2],p[3]);
+        g.userData.safeDecor=true; stageDecor.push(g);
+      });
+
+      const mountainData=[[-26,-45,14,9,0x6b8fb0],[24,-70,17,10,0x587c9b],[-28,-105,19,12,0x7898ad],[28,-135,15,10,0x4f718e]];
+      mountainData.forEach(p=>{
+        addMountain(p[0],p[1],p[2],p[3],p[4]);
+        const m=scene.children[scene.children.length-1];
+        if(m){m.userData.safeDecor=true;stageDecor.push(m);}
+      });
+
+      for(let i=2;i<=13;i+=2){
+        const rx=Math.sin(i*.78)*5.2;
+        const rz=-3.8*i-Math.sin(i*.42)*.65;
+        const ry=.15*i+2.35;
+        const ring=new THREE.Mesh(
+          new THREE.TorusGeometry(.72,.07,10,24),
+          new THREE.MeshStandardMaterial({color:0x20e0ff,emissive:0x063c55,emissiveIntensity:.55,roughness:.45,metalness:.2})
+        );
+        ring.position.set(rx,ry,rz); ring.rotation.x=Math.PI/2;
+        ring.userData.safeDecor=true; ring.userData.baseY=ry;
+        scene.add(ring); stageDecor.push(ring);
+      }
+
+      [3,7,11].forEach(i=>{
+        const tx=Math.sin(i*.78)*5.2+(i%2?1.9:-1.9);
+        const tz=-3.8*i-Math.sin(i*.42)*.65;
+        const ty=.15*i+(i%4===0?.55:0);
+        const g=addTree(tx,ty+.35,tz,.72);
+        g.userData.safeDecor=true; stageDecor.push(g);
+      });
+    }catch(_){
+      // Decoration is optional; the core game remains usable if rendering it fails.
+    }
+  }
+
+  if(typeof buildStage==='function' && !buildStage.__v73wrapped){
+    const originalBuildStage=buildStage;
+    const wrapped=function(n){
+      originalBuildStage(n);
+      addSafeStageVisuals(n);
+    };
+    wrapped.__v73wrapped=true;
+    buildStage=wrapped;
+  }
+
+  addSafeStageVisuals(typeof stage==='number'?stage:1);
+
+  function decorateTick(){
+    try{
+      const t=performance.now()*.001;
+      stageDecor.forEach((o,i)=>{
+        if(o && o.userData && o.userData.safeDecor && o.geometry && o.geometry.type==='TorusGeometry'){
+          o.rotation.z=t*.35+(i%3)*.4;
+          o.position.y=o.userData.baseY+Math.sin(t*1.5+i)*.025;
+        }
+      });
+    }catch(_){}
+    requestAnimationFrame(decorateTick);
+  }
+  requestAnimationFrame(decorateTick);
+})();
+</script>
+
+</div>
+
+<script>
+// V7_4_SAFE_EXPANSION_RENDER_FIX
+(function(){
+  function init(){
+    var l=document.getElementById('loginBtn'),r=document.getElementById('registerBtn');
+    if(l){l.type='button';l.setAttribute('data-auth-action','login');}
+    if(r){r.type='button';r.setAttribute('data-auth-action','register');}
+  }
+  init();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+
+<script>
+(function(){
+  const ACCESS_CODE='';
+  const ACCESS_KEY='parkour_friends_access_v1';
+  function unlock(){
+    try{localStorage.setItem(ACCESS_KEY,'1');}catch(_){}
+    const g=document.getElementById('friendGate');
+    if(g)g.style.display='none';
+    const a=document.getElementById('auth');
+    if(a && !window.gameStarted && !window.currentAccount)a.style.display='flex';
+  }
+  function init(){
+    const g=document.getElementById('friendGate');
+    const a=document.getElementById('auth');
+    let ok=false; try{ok=localStorage.getItem(ACCESS_KEY)==='1';}catch(_){}
+    if(ok){if(g)g.style.display='none';if(a && !window.gameStarted && !window.currentAccount)a.style.display='flex';return;}
+    if(a)a.style.display='none';
+    const inp=document.getElementById('friendCode'),btn=document.getElementById('friendEnter'),msg=document.getElementById('friendMsg');
+    function check(){
+      const v=(inp.value||'').trim().toUpperCase();
+      if(v===ACCESS_CODE){unlock();}
+      else{msg.textContent='❌ کد ورود اشتباه است.';inp.select();}
+    }
+    btn&&btn.addEventListener('click',check);
+    inp&&inp.addEventListener('keydown',e=>{if(e.key==='Enter')check();});
+    setTimeout(()=>inp&&inp.focus(),100);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<script id="orientationChoiceScript">
+(function(){
+  const panel=document.getElementById('orientationPanel');
+  const msg=document.getElementById('orientationMsg');
+  const btn=document.getElementById('orientationBtn');
+  function open(){if(panel)panel.style.display='flex';}
+  function close(){if(panel)panel.style.display='none';}
+  async function setOrientation(mode){
+    try{localStorage.setItem('parkour_screen_orientation_choice',mode);}catch(_){}
+    const api=screen.orientation;
+    try{
+      if(mode==='auto'){if(api&&api.unlock)api.unlock();msg.textContent='چرخش خودکار فعال شد؛ اگر لازم بود چرخش دستگاه را هم روشن کن.';}
+      else if(api&&api.lock){
+        if(!document.fullscreenElement && document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();}
+        await api.lock(mode);
+        msg.textContent='جهت صفحه تنظیم شد.';
+      } else {msg.textContent='این مرورگر قفل جهت را پشتیبانی نمی‌کند؛ گوشی را بچرخان و قفل چرخش دستگاه را خاموش کن.';}
+    }catch(e){msg.textContent='مرورگر اجازهٔ قفل جهت نداد. گوشی را بچرخان یا بازی را از مرورگر اصلی و در حالت تمام‌صفحه باز کن.';}
+  }
+  if(btn)btn.addEventListener('click',open);
+  document.getElementById('orientationClose')?.addEventListener('click',close);
+  document.getElementById('orientationLandscape')?.addEventListener('click',()=>setOrientation('landscape'));
+  document.getElementById('orientationPortrait')?.addEventListener('click',()=>setOrientation('portrait'));
+  document.getElementById('orientationAuto')?.addEventListener('click',()=>setOrientation('auto'));
+  panel?.addEventListener('pointerdown',e=>{if(e.target===panel)close();});
+  try{const saved=localStorage.getItem('parkour_screen_orientation_choice');if(saved&&saved!=='auto')document.documentElement.dataset.orientationChoice=saved;}catch(_){}
+  window.addEventListener('resize',()=>{document.documentElement.dataset.currentOrientation=screen.orientation?.type|| (innerWidth>innerHeight?'landscape':'portrait');});
+})();
+</script>
+
+
+<div id="cheatPanel">
+  <div id="cheatCard">
+    <h2>🛠️ پنل چیت</h2>
+    <div class="cheatGrid">
+      <button type="button" onclick="cheatCoins()">🪙 +10000 سکه</button>
+      <button type="button" onclick="cheatAllSkins()">👕 همه اسکین‌ها</button>
+      <button type="button" onclick="cheatNextStage()">⏭️ مرحله بعد</button>
+      <button type="button" onclick="cheatKillAll()">☠️ Kill All</button>
+      <button type="button" onclick="cheatCarpet()">🪄 فرش جادویی</button>
+      <button type="button" onclick="cheatFullHealth()">❤️ جان کامل</button>
+      <button type="button" onclick="cheatSpeed()">⚡ سرعت ×2</button>
+      <button type="button" onclick="cheatCompleteSeason()">🏆 اتمام فصل</button>
+      <button type="button" onclick="cheatResetSpeed()">🐢 سرعت عادی</button>
+      <button type="button" onclick="openCoinCodeGenerator()">🎟️ ساخت کد خرید</button>
+    </div>
+    <button id="cheatClose" type="button">❌ بستن</button>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  function bindCheatClose(){
+    var b=document.getElementById('cheatClose'),p=document.getElementById('cheatPanel');
+    if(!b||!p)return;
+    b.onclick=function(e){e.preventDefault();e.stopPropagation();p.style.display='none';return false;};
+    b.ontouchend=function(e){e.preventDefault();e.stopPropagation();p.style.display='none';};
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindCheatClose);else bindCheatClose();
+})();
+</script>
+
+<script id="CHEAT_PANEL_SCRIPT">
+(function(){
+  function byId(id){return document.getElementById(id);}
+  function showMsg(t){
+    if(typeof window.showToast==='function') window.showToast(t);
+    else if(typeof toast==='function') toast(t);
+    else alert(t);
+  }
+
+  window.cheatCoins=function(){
+    if(typeof coinCount!=='undefined'){
+      coinCount=(Number(coinCount)||0)+10000;
+      if(typeof paintCoins==='function')paintCoins();
+      if(typeof saveCurrent==='function')saveCurrent();
+      showMsg('🪙 10000 سکه اضافه شد');
+    }
+  };
+
+  window.cheatAllSkins=function(){
+    if(typeof ownedSkins!=='undefined'){
+      ['samy','alex','steve','shadow','neon','galaxy','lava','ice'].forEach(id=>ownedSkins[id]=true);
+      if(typeof saveOwnedSkins==='function')saveOwnedSkins();
+      if(typeof window.currentAccount!=='undefined' && typeof saveCurrent==='function')saveCurrent();
+      showMsg('👕 همه اسکین‌ها باز شدند');
+    }
+  };
+
+  window.cheatNextStage=function(){
+    if(typeof stage!=='undefined'){
+      stage=Math.min(50, Number(stage)+1);
+      if(typeof buildStage==='function')buildStage(stage);
+      if(typeof updateHUD==='function')updateHUD();
+      showMsg('⏭️ رفتن به مرحله '+stage);
+    }
+  };
+
+  window.cheatKillAll=function(){
+    if(typeof enemies!=='undefined' && Array.isArray(enemies)){
+      enemies.forEach(e=>{if(e)e.visible=false;});
+      showMsg('☠️ همه دشمن‌ها حذف شدند');
+    }else showMsg('☠️ Kill All فعال شد');
+  };
+
+  window.cheatCarpet=function(){
+    if(typeof carpetOwned!=='undefined')carpetOwned=true;
+    if(typeof carpet!=='undefined')carpet=true;
+    if(typeof saveCurrent==='function')saveCurrent();
+    showMsg('🪄 فرش جادویی فعال شد');
+  };
+
+  window.cheatFullHealth=function(){
+    if(typeof playerHealth!=='undefined')playerHealth=999999;
+    if(typeof health!=='undefined')health=999999;
+    showMsg('❤️ جان کامل شد');
+  };
+
+  window.cheatCompleteSeason=function(){
+    try{
+      const maxStage=(typeof STAGES_PER_SEASON_BY_SEASON!=='undefined' ? (STAGES_PER_SEASON_BY_SEASON[Math.max(0,(Number(season)||1)-1)]||50) : 50);
+      stage=maxStage;
+      victoryRewardGiven=false;
+      finishTransition=false;
+      if(typeof buildStage==='function')buildStage(stage);
+      const fp=window.stageFinishPoint;
+      if(fp && typeof player!=='undefined'){
+        setTimeout(()=>{
+          player.position.set(fp.x,fp.y,fp.z);
+          vy=0;
+          onGround=true;
+          showMsg('🏆 پایان فصل!');
+        },100);
+      }else{
+        showMsg('🏆 به آخرین مرحله فصل رسیدی.');
+      }
+    }catch(e){showMsg('⚠️ اتمام فصل انجام نشد.');}
+  };
+
+  window.cheatSpeed=function(){
+    window.__cheatSpeedMultiplier=2;
+    showMsg('⚡ سرعت ×2 شد');
+  };
+
+  window.cheatResetSpeed=function(){
+    window.__cheatSpeedMultiplier=1;
+    showMsg('🐢 سرعت عادی شد');
+  };
+
+  window.closeCheatPanel=function(){
+    const p=byId('cheatPanel');
+    if(p)p.style.display='none';
+  };
+  function initCheatPanel(){
+    const p=byId('cheatPanel'),c=byId('cheatClose');
+    if(!p)return;
+    if(c){
+      c.type='button';
+      c.onclick=function(e){e.preventDefault();e.stopPropagation();window.closeCheatPanel();return false;};
+      c.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();window.closeCheatPanel();},{passive:false});
+    }
+    p.addEventListener('click',e=>{if(e.target===p)window.closeCheatPanel();});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initCheatPanel);
+  else initCheatPanel();
+})();
+</script>
+
+
+<button id="cheatCodeBtn" type="button">🔐 کد چیت</button>
+<div id="cheatCodeBox">
+<div id="cheatCodeCard">
+<h3>🔐 فعال‌سازی پنل چیت</h3>
+<div style="text-align:center;font-size:12px;opacity:.8;margin-bottom:10px">کد ۱۰ رقمی را وارد کنید</div>
+<input id="cheatCodeInput" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="••••••••••">
+<button id="cheatCodeEnter" type="button">✅ فعال کردن</button>
+<button id="cheatCodeCancel" type="button">❌ لغو</button>
+</div></div>
+
+
+<script id="CHEAT_CODE_SCRIPT">
+(function(){
+const CHEAT_CODE="7391846205";
+function init(){
+ const o=document.getElementById('cheatCodeBtn'),b=document.getElementById('cheatCodeBox'),
+ i=document.getElementById('cheatCodeInput'),e=document.getElementById('cheatCodeEnter'),
+ c=document.getElementById('cheatCodeCancel'),p=document.getElementById('cheatPanelBtn');
+ if(!o||!b||!i||!e||!c)return;
+ o.onclick=()=>{b.style.display='flex';i.value='';setTimeout(()=>i.focus(),50)};
+ c.onclick=()=>b.style.display='none';
+ e.onclick=()=>{
+  const v=i.value.trim();
+  if(!/^\d{10}$/.test(v)){alert('⚠️ کد باید دقیقاً ۱۰ رقم باشد.');return;}
+  if(v===CHEAT_CODE){
+    b.style.display='none';
+    const panel=document.getElementById('cheatPanel');
+    if(panel) panel.style.display='flex';
+    else alert('⚠️ پنل چیت در این نسخه پیدا نشد.');
+  }else{alert('❌ کد اشتباه است.');i.select();}
+ };
+ i.addEventListener('keydown',x=>{if(x.key==='Enter')e.click()});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+
+
+
+</body>
+</html>
